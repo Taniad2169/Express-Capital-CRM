@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Capital Associates CRM</title>
+    <style>
+        /* General Styles */
+        body {
+            background-color: #f4f4f9;
+            color: #333;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .main-content-wrapper {
+            flex-grow: 1;
+            padding: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            text-align: center;
+            padding: 1.5rem 0;
+            background-color: #001f3f;
+            color: #FFD700;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+        .icon-btn {
+            background: transparent;
+            font-size: 2rem;
+            color: #FFD700;
+            border: none;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+        }
+        .admin-login-btn {
+            right: 20px;
+        }
+        .exit-btn {
+            right: 70px;
+        }
+        .panel {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        h1, h2, h3 {
+            color: #001f3f;
+            margin-top: 0;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 1rem;
+            color: #555;
+        }
+        input, select, textarea {
+            display: block;
+            width: 100%;
+            margin: 0.5rem 0 1rem 0;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            display: inline-block;
+            background-color: #FFD700;
+            color: #001f3f;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #ffe066;
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .lead-card, .task-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-left: 5px solid #001f3f;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .lead-card b, .task-card b {
+            color: #001f3f;
+        }
+        .modal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-bg.visible {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        .modal-content.scrollable {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #555;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .footer-bar {
+            text-align: center;
+            padding: 1rem 0;
+            background-color: #001f3f;
+            color: #FFD700;
+            border-radius: 0 0 8px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        .footer-countdown-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .footer-count-current {
+            background-color: #FFD700;
+            color: #001f3f;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .footer-verse {
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        .tab-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .tab-button {
+            background-color: #ddd;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            margin-right: 2px;
+            font-weight: bold;
+        }
+        .tab-button.active {
+            background-color: #001f3f;
+            color: #FFD700;
+        }
+
+        /* --- Celebration Animations --- */
+        #celebration-modal {
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+        }
+        #celebration-modal .modal-content {
+            background: transparent;
+            box-shadow: none;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .animated-statement {
+            font-size: 3em;
+            font-weight: bold;
+            animation: text-pulse 1.5s infinite alternate;
+        }
+        
+        @keyframes text-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .bouncing-emoji, .dancing-dollar {
+            font-size: 5em;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .dancing-dollar {
+            color: #FFD700;
+            animation: bounce 1s infinite, slide-right 2s forwards;
+            position: absolute;
+            left: -100px;
+        }
+
+        @keyframes slide-right {
+            from { left: -100px; }
+            to { left: 50%; transform: translateX(-50%); }
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .confetti {
+            width: 10px;
+            height: 10px;
+            background-color: #FFD700;
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+            opacity: 0;
+        }
+        .confetti.blue { background-color: #001f3f; }
+        .confetti.red { background-color: #d9534f; }
+        .confetti.green { background-color: #5cb85c; }
+        .confetti.purple { background-color: #6c5ce7; }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Countdown Styles */
+        #countdown-container {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        #countdown-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        #countdown-message {
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Delete Confirmation Buttons */
+        .delete-confirmation-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .delete-confirmation-buttons button {
+            width: 48%; /* Adjust for spacing */
+            margin-top: 0; /* Override default button margin */
+        }
+        .delete-confirmation-buttons .delete-yes-btn {
+            background-color: #d9534f; /* Red for delete */
+            color: white;
+        }
+        .delete-confirmation-buttons .delete-yes-btn:hover {
+            background-color: #c9302c;
+        }
+        .delete-confirmation-buttons .delete-no-btn {
+            background-color: #5cb85c; /* Green for cancel */
+            color: white;
+        }
+        .delete-confirmation-buttons .delete-no-btn:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Target Button Styles */
+        .target-section {
+            display: flex;
+            align-items: center;
+            background: #0f4c75;
+            border-radius: 20px;
+            padding: 5px 10px;
+            position: absolute;
+            left: 20px;
+            top: 15px;
+        }
+        .target-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .target-value {
+            margin: 0 8px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            color: white;
+        }
+        .mini-reset {
+            background: #bbe1fa;
+            color: #1b262c;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="celebration-modal" class="modal-bg">
+        <div class="confetti-container" id="confetti-container"></div>
+        <div class="modal-content">
+            <span class="dancing-dollar hidden">$</span>
+            <span class="bouncing-emoji hidden">😀</span>
+            <div id="countdown-container" class="hidden">
+                <div id="countdown-number"></div>
+                <div id="countdown-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="admin-modal">
+        <div class="modal-content">
+            <button class="close-btn" id="admin-modal-close">×</button>
+            <h2>Admin Login</h2>
+            <form id="admin-login-form">
+                <label>Password:</label>
+                <input type="password" id="admin-password" required autofocus>
+                <button type="submit">Login</button>
+                <div class="error" id="admin-error" style="color: red; margin-top: 10px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="view-lead-modal">
+        <div class="modal-content scrollable">
+            <button class="close-btn" id="view-modal-close">×</button>
+            <h2>Lead Details</h2>
+            <div id="view-lead-details"></div>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="action-modal">
+        <div class="modal-content scrollable">
+            <button class="close-btn" id="action-modal-close">×</button>
+            <h2 id="action-modal-title"></h2>
+            <form id="action-form">
+                <input type="hidden" id="action-item-id">
+                <input type="hidden" id="action-item-type">
+                <input type="hidden" id="action-item-action">
+                <div id="action-fields-container"></div>
+                <label id="action-comment-label" class="hidden">Comment (200 words max):</label>
+                <textarea name="comment" id="action-comment" maxlength="1200" rows="4" class="hidden"></textarea>
+                <div id="delete-confirmation-buttons" class="delete-confirmation-buttons hidden">
+                    <button type="button" class="delete-yes-btn" id="confirm-delete-yes">Yes, Delete</button>
+                    <button type="button" class="delete-no-btn" id="confirm-delete-no">No, Cancel</button>
+                </div>
+                <button type="submit" id="action-submit-btn">Save</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="modal-bg" id="task-action-modal">
+        <div class="modal-content scrollable">
+            <button class="close-btn" id="task-action-modal-close">×</button>
+            <h2 id="task-action-modal-title"></h2>
+            <form id="task-action-form">
+                <input type="hidden" id="task-action-item-id">
+                <input type="hidden" id="task-action-item-action">
+                <div id="task-action-fields-container"></div>
+                <label id="task-action-comment-label" class="hidden">Comment (200 words max):</label>
+                <textarea name="comment" id="task-action-comment" maxlength="1200" rows="4" class="hidden"></textarea>
+                <div id="task-delete-confirmation-buttons" class="delete-confirmation-buttons hidden">
+                    <button type="button" class="delete-yes-btn" id="task-confirm-delete-yes">Yes, Delete</button>
+                    <button type="button" class="delete-no-btn" id="task-confirm-delete-no">No, Cancel</button>
+                </div>
+                <button type="submit" id="task-action-submit-btn">Save</button>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="main-content-wrapper">
+        <div class="container">
+            <header>
+                <div class="target-section">
+                    <button class="target-btn" id="target-btn">🎯</button>
+                    <span class="target-value" id="target-value">0</span>
+                    <button class="mini-reset" id="target-reset">0</button>
+                </div>
+                <h1>Express Capital Associates</h1>
+                <button class="icon-btn exit-btn hidden" id="exit-admin-btn" title="Exit Admin">🔓</button>
+                <button class="icon-btn admin-login-btn" id="admin-login-btn" title="Admin Login">🔑</button>
+            </header>
+
+            <div id="crm-content">
+                <div class="panel" id="application-intake">
+                    <h2>Add New Lead</h2>
+                    <form id="lead-form">
+                        <label>Full Name:</label>
+                        <input name="fullName" required>
+                        <label>Phone Number:</label>
+                        <input name="phone" required>
+                        <label>Email Address:</label>
+                        <input name="email" type="email" required>
+                        <label>Business Name:</label>
+                        <input name="businessName">
+                        <label>City:</label>
+                        <input name="city">
+                        <label>State:</label>
+                        <select name="state" required>
+                            <option value="">Select State</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Connecticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                            <option value="IA">Iowa</option>
+                            <option value="KS">Kansas</option>
+                            <option value="KY">Kentucky</option>
+                            <option value="LA">Louisiana</option>
+                            <option value="ME">Maine</option>
+                            <option value="MD">Maryland</option>
+                            <option value="MA">Massachusetts</option>
+                            <option value="MI">Michigan</option>
+                            <option value="MN">Minnesota</option>
+                            <option value="MS">Mississippi</option>
+                            <option value="MO">Missouri</option>
+                            <option value="MT">Montana</option>
+                            <option value="NE">Nebraska</option>
+                            <option value="NV">Nevada</option>
+                            <option value="NH">New Hampshire</option>
+                            <option value="NJ">New Jersey</option>
+                            <option value="NM">New Mexico</option>
+                            <option value="NY">New York</option>
+                            <option value="NC">North Carolina</option>
+                            <option value="ND">North Dakota</option>
+                            <option value="OH">Ohio</option>
+                            <option value="OK">Oklahoma</option>
+                            <option value="OR">Oregon</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="RI">Rhode Island</option>
+                            <option value="SC">South Carolina</option>
+                            <option value="SD">South Dakota</option>
+                            <option value="TN">Tennessee</option>
+                            <option value="TX">Texas</option>
+                            <option value="UT">Utah</option>
+                            <option value="VT">Vermont</option>
+                            <option value="VA">Virginia</option>
+                            <option value="WA">Washington</option>
+                            <option value="WV">West Virginia</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="WY">Wyoming</option>
+                        </select>
+                        <label>Service (Reason for MCA):</label>
+                        <select name="service" required>
+                            <option value="">Select Service</option>
+                            <option value="Working Capital">Working Capital</option>
+                            <option value="Payroll">Payroll</option>
+                            <option value="Inventory Purchase">Inventory Purchase</option>
+                            <option value="Equipment Purchase">Equipment Purchase</option>
+                            <option value="Expansion">Business Expansion</option>
+                            <option value="Renovation">Renovation</option>
+                            <option value="Marketing">Marketing & Advertising</option>
+                            <option value="Emergency Funds">Emergency Expenses</option>
+                            <option value="Debt Consolidation">Debt Consolidation</option>
+                            <option value="Seasonal Expenses">Seasonal Cash Flow Needs</option>
+                            <option value="Hiring and Training">Hiring & Training Staff</option>
+                            <option value="Bridging Cash Flow Gaps">Bridge Cash Flow Gaps</option>
+                            <option value="Business Acquisition">Business Acquisition</option>
+                            <option value="Start-up Costs">Start-up Costs</option>
+                            <option value="Website Development">Website Development</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <label>Industry:</label>
+                        <select name="industry" required>
+                            <option value="">Select Industry</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Restaurants">Restaurants</option>
+                            <option value="Construction">Construction</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Transportation">Transportation & Trucking</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Hospitality">Hospitality / Hotels</option>
+                            <option value="E-commerce">E-commerce</option>
+                            <option value="Franchise">Franchises</option>
+                            <option value="Automotive">Automotive / Car Repair</option>
+                            <option value="Salons & Spas">Salons & Spas</option>
+                            <option value="Food Trucks">Food Trucks</option>
+                            <option value="Medical Practices">Medical Practices</option>
+                            <option value="Dental Offices">Dental Offices</option>
+                            <option value="Gyms & Fitness">Gyms & Fitness Centers</option>
+                            <option value="Landscaping">Landscaping</option>
+                            <option value="Plumbing">Plumbing</option>
+                            <option value="HVAC">HVAC Services</option>
+                            <option value="Car Washes">Car Washes</option>
+                            <option value="Catering">Catering</option>
+                            <option value="Wholesale & Distribution">Wholesale & Distribution</option>
+                            <option value="Printing & Signs">Printing & Sign Shops</option>
+                            <option value="Professional Services">Professional Services</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <label>Best Time to Call:</label>
+                        <select name="bestTime" required>
+                            <option value="">Select Time</option>
+                            <option value="Morning">Morning</option>
+                            <option value="Afternoon">Afternoon</option>
+                            <option value="Evening">Evening</option>
+                        </select>
+                        <label>Best Way to Contact:</label>
+                        <select name="bestWay" required>
+                            <option value="">Select Way</option>
+                            <option value="Call">Call</option>
+                            <option value="Text">Text</option>
+                            <option value="Email">Email</option>
+                        </select>
+                        <label>Do you have a website?</label>
+                        <select name="hasWebsite" id="has-website" required>
+                            <option value="">Select an option</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                        <div id="website-url-container" class="hidden">
+                            <label>Website URL:</label>
+                            <input name="websiteUrl" id="website-url" value="https://www.">
+                        </div>
+                        <button type="submit">Save Lead</button>
+                    </form>
+                </div>
+                
+                <section id="back-office" class="hidden">
+                    <div class="panel">
+                        <h2>Leads List</h2>
+                        <div class="tab-container">
+                            <button class="tab-button active" onclick="filterLeads('all')">All Leads</button>
+                            <button class="tab-button" onclick="filterLeads('Interested')">Interested</button>
+                            <button class="tab-button" onclick="filterLeads('Hot Leads')">Hot Leads</button>
+                            <button class="tab-button" onclick="filterLeads('Prospect')">Prospect</button>
+                            <button class="tab-button" onclick="filterLeads('Clients')">Clients</button>
+                            <button class="tab-button" onclick="filterLeads('Closed Deal')">Closed Deals</button>
+                            <button class="tab-button" onclick="filterLeads('Canceled Deal')">Canceled Deals</button>
+                            <button class="tab-button" onclick="filterLeads('Referral')">Referral</button>
+                        </div>
+                        <div id="lead-list"></div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>Task Management</h2>
+                        <form id="task-form">
+                            <label>Task Type:</label>
+                            <select name="type" required>
+                                <option value="">Select Task</option>
+                                <option value="Call Client">Call Client</option>
+                                <option value="Contact Client">Contact Client</option>
+                                <option value="Zoom Meeting">Zoom Meeting</option>
+                                <option value="Networking">Networking</option>
+                                <option value="Email Document">Email Document</option>
+                                <option value="Prepare Document">Prepare Document</option>
+                                <option value="Call Lender">Call Lender</option>
+                                <option value="Vacation">Vacation</option>
+                                <option value="Doctor's Appointment">Doctor's Appointment</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Relax">Relax</option>
+                                <option value="Work on Deals">Work on Deals</option>
+                            </select>
+                            <label>Date:</label>
+                            <input name="date" type="date" required>
+                            <label>Time:</label>
+                            <select name="time" required>
+                                <option value="">Select Time</option>
+                                <option value="09:00">09:00</option>
+                                <option value="10:00">10:00</option>
+                                <option value="11:00">11:00</option>
+                                <option value="12:00">12:00</option>
+                                <option value="13:00">13:00</option>
+                                <option value="14:00">14:00</option>
+                                <option value="15:00">15:00</option>
+                                <option value="16:00">16:00</option>
+                                <option value="17:00">17:00</option>
+                            </select>
+                            <label>Comment (max 300 words):</label>
+                            <textarea name="comment" maxlength="1500"></textarea>
+                            <button type="submit">Add Task</button>
+                        </form>
+                        <div id="task-list"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div class="footer-countdown-row">
+            <span>Daily Leads Left:</span>
+            <span id="footer-count-current" class="footer-count-current">100</span>
+            <select id="daily-target-select"></select>
+        </div>
+        <div class="footer-verse">
+            I can do all things through Christ Who strengthen me Philippians 4:13
+        </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+
+      // IMPORTANT: This block has been updated with the API key you provided.
+      // Do not change this unless your Firebase configuration changes.
+      const firebaseConfig = {
+        apiKey: "AIzaSyAjSxy2Rqd3oxDjiBqyp238YYW9jFp9pDo",
+        authDomain: "express-crm.firebaseapp.com",
+        projectId: "express-crm",
+        storageBucket: "express-crm.firebasestorage.app",
+        messagingSenderId: "379523906404",
+        appId: "1:379523906404:web:d1e3b5557c6b35f3c8d871",
+        measurementId: "G-VVV55R1YD9"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const analytics = getAnalytics(app);
+
+      // Your CRM JavaScript
+      // --- Data Definitions ---
+      const LEAD_STATUSES = [
+          "Interested", "Hot Leads", "Prospect", "Clients", "Closed Deal", "Canceled Deal", "Referral"
+      ];
+      const ADMIN_PASSWORD = "admin333";
+
+      // --- DOM Elements ---
+      const adminModal = document.getElementById("admin-modal");
+      const adminLoginBtn = document.getElementById("admin-login-btn");
+      const exitAdminBtn = document.getElementById("exit-admin-btn");
+      const backOffice = document.getElementById("back-office");
+      const applicationIntake = document.getElementById("application-intake");
+      const leadForm = document.getElementById("lead-form");
+      const taskForm = document.getElementById("task-form");
+      const leadList = document.getElementById("lead-list");
+      const taskList = document.getElementById("task-list");
+      const footerCountCurrent = document.getElementById("footer-count-current");
+      const dailyTargetSelect = document.getElementById("daily-target-select");
+      const viewLeadModal = document.getElementById("view-lead-modal");
+      const viewLeadDetails = document.getElementById("view-lead-details");
+      
+      const actionModal = document.getElementById("action-modal");
+      const actionModalTitle = document.getElementById("action-modal-title");
+      const actionForm = document.getElementById("action-form");
+      const actionItemId = document.getElementById("action-item-id");
+      const actionItemType = document.getElementById("action-item-type");
+      const actionItemAction = document.getElementById("action-item-action");
+      const actionFieldsContainer = document.getElementById("action-fields-container");
+      const actionCommentLabel = document.getElementById("action-comment-label");
+      const actionComment = document.getElementById("action-comment");
+      const actionSubmitBtn = document.getElementById("action-submit-btn");
+      const deleteConfirmationButtons = document.getElementById("delete-confirmation-buttons");
+      const confirmDeleteYes = document.getElementById("confirm-delete-yes");
+      const confirmDeleteNo = document.getElementById("confirm-delete-no");
+
+      const celebrationModal = document.getElementById("celebration-modal");
+      const bouncingEmoji = document.querySelector('.bouncing-emoji');
+      const dancingDollar = document.querySelector('.dancing-dollar');
+      const hasWebsiteSelect = document.getElementById('has-website');
+      const websiteUrlContainer = document.getElementById('website-url-container');
+      const websiteUrlInput = document.getElementById('website-url');
+      const countdownContainer = document.getElementById("countdown-container");
+      const countdownNumber = document.getElementById("countdown-number");
+      const countdownMessage = document.getElementById("countdown-message");
+      const confettiContainer = document.getElementById("confetti-container");
+
+      const taskActionModal = document.getElementById("task-action-modal");
+      const taskActionModalTitle = document.getElementById("task-action-modal-title");
+      const taskActionForm = document.getElementById("task-action-form");
+      const taskActionItemId = document.getElementById("task-action-item-id");
+      const taskActionItemAction = document.getElementById("task-action-item-action");
+      const taskActionFieldsContainer = document.getElementById("task-action-fields-container");
+      const taskActionCommentLabel = document.getElementById("task-action-comment-label");
+      const taskActionComment = document.getElementById("task-action-comment");
+      const taskActionSubmitBtn = document.getElementById("task-action-submit-btn");
+      const taskDeleteConfirmationButtons = document.getElementById("task-delete-confirmation-buttons");
+      const taskConfirmDeleteYes = document.getElementById("task-confirm-delete-yes");
+      const taskConfirmDeleteNo = document.getElementById("task-confirm-delete-no");
+
+      // Target button elements
+      const targetBtn = document.getElementById("target-btn");
+      const targetReset = document.getElementById("target-reset");
+      const targetValue = document.getElementById("target-value");
+
+      let allLeads = [];
+      let allTasks = [];
+      let currentFilter = 'all';
+
+      // Target button functionality
+      let currentTargetValue = 0;
+      let nextIncrement = 1;
+
+      targetBtn.addEventListener('click', () => {
+          if (currentTargetValue + nextIncrement <= 200) {
+              currentTargetValue += nextIncrement;
+              nextIncrement++;
+              targetValue.textContent = currentTargetValue;
+          } else {
+              alert("Maximum value of 200 reached!");
+          }
+      });
+
+      targetReset.addEventListener('click', () => {
+          currentTargetValue = 0;
+          nextIncrement = 1;
+          targetValue.textContent = currentTargetValue;
+      });
+
+      // --- Data Management (Firestore) ---
+      const leadsCollection = collection(db, "leads");
+      const tasksCollection = collection(db, "tasks");
+      
+      // Use onSnapshot for real-time updates
+      onSnapshot(leadsCollection, (snapshot) => {
+          allLeads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderLeads(currentFilter);
+          updateCountdown();
+      });
+
+      onSnapshot(tasksCollection, (snapshot) => {
+          allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderTasks();
+      });
+
+      // --- Countdown Logic ---
+      function updateCountdown() {
+          const leadsCount = allLeads.length;
+          const dailyTarget = parseInt(localStorage.getItem('dailyLeadTarget') || 100);
+          const remaining = Math.max(dailyTarget - leadsCount, 0);
+          footerCountCurrent.textContent = remaining;
+      }
+      
+      function populateDailyTargetSelect() {
+          for (let i = 5; i <= 100; i += 5) {
+              const option = document.createElement('option');
+              option.value = i;
+              option.textContent = i;
+              dailyTargetSelect.appendChild(option);
+          }
+          const savedTarget = localStorage.getItem('dailyLeadTarget') || 100;
+          dailyTargetSelect.value = savedTarget;
+      }
+
+      // --- UI Rendering Functions ---
+      function renderLeads(filter = 'all') {
+          const leads = filter === 'all' ? allLeads : allLeads.filter(l => l.status === filter);
+          leadList.innerHTML = "";
+          if (leads.length === 0) {
+              leadList.innerHTML = "<p>No leads in this category.</p>";
+              return;
+          }
+          leads.forEach(lead => {
+              const card = document.createElement("div");
+              card.className = "lead-card";
+              card.innerHTML = `
+                  <b>${lead.fullName || 'N/A'}</b> (${lead.status || 'N/A'})<br>
+                  <span>${lead.businessName || 'N/A'} - ${lead.city || 'N/A'}, ${lead.state || 'N/A'}</span>
+                  <div class="btn-group">
+                      <select onchange="handleLeadAction('${lead.id}', this.value)">
+                          <option value="">Actions</option>
+                          <option value="view">View</option>
+                          <option value="move">Move Lead</option>
+                          <option value="edit">Edit Lead</option>
+                          <option value="delete">Delete Lead</option>
+                      </select>
+                  </div>
+              `;
+              leadList.appendChild(card);
+          });
+      }
+
+      function renderTasks() {
+          taskList.innerHTML = "";
+          if (allTasks.length === 0) {
+              taskList.innerHTML = "<p>No tasks saved yet.</p>";
+              return;
+          }
+          allTasks.forEach(task => {
+              const card = document.createElement("div");
+              card.className = "task-card";
+              card.innerHTML = `
+                  <b>${task.type || 'N/A'}</b> - ${task.date || 'N/A'} at ${task.time || 'N/A'}<br>
+                  <span>${task.comment || 'No comment'}</span>
+                  <div class="btn-group">
+                      <select onchange="handleTaskAction('${task.id}', this.value)">
+                          <option value="">Actions</option>
+                          <option value="complete">Complete Task</option>
+                          <option value="edit">Edit Task</option>
+                          <option value="delete">Delete Task</option>
+                      </select>
+                  </div>
+              `;
+              taskList.appendChild(card);
+          });
+      }
+
+      // Bell sound logic using Web Audio API for universal compatibility
+      function playBell() {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+          gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+
+          oscillator.connect(gainNode);
+          gainNode.connect(ctx.destination);
+
+          oscillator.start();
+          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
+          oscillator.stop(ctx.currentTime + 3);
+      }
+      
+      function triggerConfetti() {
+          const colors = ['#FFD700', '#001f3f', '#d9534f', '#5cb85c', '#6c5ce7'];
+          for (let i = 0; i < 50; i++) {
+              const confetti = document.createElement('div');
+              confetti.classList.add('confetti');
+              confetti.style.left = `${Math.random() * 100}%`;
+              confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+              confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+              confettiContainer.appendChild(confetti);
+          }
+          setTimeout(() => {
+              confettiContainer.innerHTML = '';
+          }, 5000);
+      }
+
+      // New celebration logic with countdown
+      function startCountdownCelebration() {
+          const dailyLeadsLeft = parseInt(footerCountCurrent.textContent, 10);
+          
+          celebrationModal.classList.add('visible');
+          bouncingEmoji.classList.remove('hidden');
+          dancingDollar.classList.remove('hidden');
+          countdownContainer.classList.remove('hidden');
+          triggerConfetti();
+
+          const countdownMessages = {
+              3: "🎉 You're on fire!",
+              2: "🔥 Keep up the momentum!",
+          };
+          
+          let count = dailyLeadsLeft >= 3 ? 3 : dailyLeadsLeft;
+
+          const countdownInterval = setInterval(() => {
+              if (count > 0) {
+                  countdownNumber.textContent = count;
+
+                  if (count === 1 && dailyLeadsLeft === 1) {
+                      countdownMessage.textContent = "Almost there!";
+                  } else {
+                      countdownMessage.textContent = countdownMessages[count] || "";
+                  }
+
+                  playBell();
+                  count--;
+              } else if (count === 0) {
+                  countdownNumber.textContent = "";
+                  countdownMessage.textContent = "You did it!";
+                  playBell();
+                  clearInterval(countdownInterval);
+
+                  setTimeout(() => {
+                      celebrationModal.classList.remove('visible');
+                      bouncingEmoji.classList.add('hidden');
+                      dancingDollar.classList.add('hidden');
+                      countdownContainer.classList.add('hidden');
+                  }, 2000);
+              }
+          }, 3000);
+      }
+
+      // --- Event Handlers ---
+      document.addEventListener("DOMContentLoaded", () => {
+          populateDailyTargetSelect();
+      });
+
+      dailyTargetSelect.addEventListener("change", (e) => {
+          localStorage.setItem('dailyLeadTarget', e.target.value);
+          updateCountdown();
+      });
+
+      hasWebsiteSelect.addEventListener('change', (e) => {
+          if (e.target.value === 'Yes') {
+              websiteUrlContainer.classList.remove('hidden');
+          } else {
+              websiteUrlContainer.classList.add('hidden');
+              websiteUrlInput.value = '';
+          }
+      });
+
+      // Admin Modal
+      adminLoginBtn.addEventListener("click", () => {
+          adminModal.classList.add("visible");
+      });
+      document.getElementById("admin-modal-close").addEventListener("click", () => {
+          adminModal.classList.remove("visible");
+      });
+      document.getElementById("admin-login-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const password = document.getElementById("admin-password").value;
+          if (password === ADMIN_PASSWORD) {
+              adminModal.classList.remove("visible");
+              applicationIntake.classList.add("hidden");
+              backOffice.classList.remove("hidden");
+              adminLoginBtn.classList.add("hidden");
+              exitAdminBtn.classList.remove("hidden");
+              renderLeads(currentFilter);
+              renderTasks();
+          } else {
+              document.getElementById("admin-error").textContent = "Incorrect password.";
+          }
+      });
+      exitAdminBtn.addEventListener("click", () => {
+          backOffice.classList.add("hidden");
+          applicationIntake.classList.remove("hidden");
+          adminLoginBtn.classList.remove("hidden");
+          exitAdminBtn.classList.add("hidden");
+      });
+      document.getElementById("view-modal-close").add.addEventListener("click", () => {
+          viewLeadModal.classList.remove("visible");
+      });
+      document.getElementById("action-modal-close").addEventListener("click", () => {
+          actionModal.classList.remove("visible");
+          // Hide comment and delete buttons when closing modal
+          actionCommentLabel.classList.add('hidden');
+          actionComment.classList.add('hidden');
+          actionSubmitBtn.classList.remove('hidden'); // Show save btn by default
+          deleteConfirmationButtons.classList.add('hidden');
+      });
+      document.getElementById("task-action-modal-close").addEventListener("click", () => {
+          taskActionModal.classList.remove("visible");
+          // Hide comment and delete buttons when closing modal
+          taskActionCommentLabel.classList.add('hidden');
+          taskActionComment.classList.add('hidden');
+          taskActionSubmitBtn.classList.remove('hidden'); // Show save btn by default
+          taskDeleteConfirmationButtons.classList.add('hidden');
+      });
+
+
+      // Lead Form Submission
+      leadForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const formObject = Object.fromEntries(formData);
+
+          // Correctly map form data to the lead object
+          const newLead = {
+            fullName: formObject.fullName || '',
+            phone: formObject.phone || '',
+            email: formObject.email || '',
+            businessName: formObject.businessName || '',
+            city: formObject.city || '',
+            state: formObject.state || '',
+            service: formObject.service || '',
+            industry: formObject.industry || '',
+            bestTime: formObject.bestTime || '',
+            bestWay: formObject.bestWay || '',
+            hasWebsite: formObject.hasWebsite || '',
+            status: "Interested"
+          };
+          
+          // Add websiteUrl only if 'Yes' is selected
+          if (formObject.hasWebsite === 'Yes') {
+            newLead.websiteUrl = formObject.websiteUrl || '';
+          }
+
+          await addDoc(leadsCollection, newLead);
+          leadForm.reset();
+          websiteUrlContainer.classList.add('hidden');
+          websiteUrlInput.value = 'https://www.'; // Reset URL to default
+          startCountdownCelebration();
+      });
+
+      // Task Form Submission
+      taskForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const newTask = {
+              type: formData.get('type') || '',
+              date: formData.get('date') || '',
+              time: formData.get('time') || '',
+              comment: formData.get('comment') || ''
+          };
+          await addDoc(tasksCollection, newTask);
+          taskForm.reset();
+      });
+
+      // Lead Actions Handler
+      window.handleLeadAction = function(id, action) {
+          const lead = allLeads.find(l => l.id === id);
+          if (action === "view") {
+              if (!lead) return;
+              viewLeadDetails.innerHTML = `
+                  <p><b>Name:</b> ${lead.fullName || 'N/A'}</p>
+                  <p><b>Phone:</b> ${lead.phone || 'N/A'}</p>
+                  <p><b>Email:</b> ${lead.email || 'N/A'}</p>
+                  <p><b>Business Name:</b> ${lead.businessName || 'N/A'}</p>
+                  <p><b>City:</b> ${lead.city || 'N/A'}</p>
+                  <p><b>State:</b> ${lead.state || 'N/A'}</p>
+                  <p><b>Service:</b> ${lead.service || 'N/A'}</p>
+                  <p><b>Industry:</b> ${lead.industry || 'N/A'}</p>
+                  <p><b>Best Time to Call:</b> ${lead.bestTime || 'N/A'}</p>
+                  <p><b>Best Way to Contact:</b> ${lead.bestWay || 'N/A'}</p>
+                  <p><b>Website:</b> ${lead.websiteUrl || 'N/A'}</p>
+                  <p><b>Status:</b> ${lead.status || 'N/A'}</p>
+                  ${lead.referralName ? `<p><b>Referred By:</b> ${lead.referralName}</p>` : ''}
+                  ${lead.referralComment ? `<p><b>Referral Comment:</b> ${lead.referralComment}</p>` : ''}
+              `;
+              viewLeadModal.classList.add("visible");
+              return;
+          }
+
+          actionItemId.value = id;
+          actionItemType.value = 'lead';
+          actionItemAction.value = action;
+          actionModalTitle.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)} Lead`;
+          actionFieldsContainer.innerHTML = '';
+          
+          // Reset visibility for action modal elements
+          actionCommentLabel.classList.add('hidden');
+          actionComment.classList.add('hidden');
+          actionComment.value = ''; // Clear comment field
+          actionSubmitBtn.classList.remove('hidden');
+          deleteConfirmationButtons.classList.add('hidden');
+
+          if (action === 'move') {
+              const select = document.createElement('select');
+              select.name = 'newStatus';
+              select.required = true;
+              select.innerHTML = LEAD_STATUSES.map(s => `<option value="${s}" ${s === lead.status ? 'disabled' : ''}>${s}</option>`).join('');
+              const label = document.createElement('label');
+              label.textContent = 'Move to:';
+              actionFieldsContainer.appendChild(label);
+              actionFieldsContainer.appendChild(select);
+              
+              const referralFields = `
+                  <div id="referral-fields" class="hidden">
+                      <label>Referred By:</label>
+                      <input name="referralName" id="referralName" maxlength="50">
+                      <label>Referral Comment:</label>
+                      <textarea name="referralComment" id="referralComment" maxlength="300"></textarea>
+                  </div>
+              `;
+              actionFieldsContainer.insertAdjacentHTML('beforeend', referralFields);
+              
+              select.addEventListener('change', (e) => {
+                  const referralDiv = actionModal.querySelector('#referral-fields'); // Target within actionModal
+                  if (e.target.value === 'Referral') {
+                      referralDiv.classList.remove('hidden');
+                  } else {
+                      referralDiv.classList.add('hidden');
+                  }
+              });
+
+          } else if (action === 'edit') {
+              actionModalTitle.textContent = "Edit Lead";
+              actionFieldsContainer.innerHTML = `
+                  <label>Full Name:</label><input name="fullName" value="${lead.fullName || ''}" required>
+                  <label>Phone Number:</label><input name="phone" value="${lead.phone || ''}" required>
+                  <label>Email Address:</label><input name="email" type="email" value="${lead.email || ''}" required>
+                  <label>Business Name:</label><input name="businessName" value="${lead.businessName || ''}">
+                  <label>City:</label><input name="city" value="${lead.city || ''}">
+                  <label>State:</label>
+                  <select name="state" required>
+                      ${Array.from(document.querySelector('select[name="state"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.state ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
+                  </select>
+                  <label>Service:</label>
+                  <select name="service" required>
+                      ${Array.from(document.querySelector('select[name="service"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.service ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
+                  </select>
+                  <label>Industry:</label>
+                  <select name="industry" required>
+                      ${Array.from(document.querySelector('select[name="industry"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.industry ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
+                  </select>
+                  <label>Best Time to Call:</label>
+                  <select name="bestTime" required>
+                      ${Array.from(document.querySelector('select[name="bestTime"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestTime ? 'selected' : ''}>${opt.textContent</option>`).join('')}
+                  </select>
+                  <label>Best Way to Contact:</label>
+                  <select name="bestWay" required>
+                      ${Array.from(document.querySelector('select[name="bestWay"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestWay ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
+                  </select>
+                  <label>Do you have a website?</label>
+                  <select name="hasWebsite" id="edit-has-website" required>
+                      <option value="Yes" ${lead.hasWebsite === 'Yes' ? 'selected' : ''}>Yes</option>
+                      <option value="No" ${lead.hasWebsite === 'No' ? 'selected' : ''}>No</option>
+                  </select>
+                  <div id="edit-website-url-container" class="${lead.hasWebsite === 'Yes' ? '' : 'hidden'}">
+                      <label>Website URL:</label>
+                      <input name="websiteUrl" value="${lead.websiteUrl || ''}">
+                  </div>
+                  <label>Referred By:</label><input name="referralName" value="${lead.referralName || ''}" maxlength="50">
+                  <label>Referral Comment:</label><textarea name="referralComment" maxlength="300" rows="3">${lead.referralComment || ''}</textarea>
+              `;
+              actionModal.querySelector('#edit-has-website').addEventListener('change', (e) => { // Target within actionModal
+                  const urlContainer = actionModal.querySelector('#edit-website-url-container');
+                  if (e.target.value === 'Yes') {
+                      urlContainer.classList.remove('hidden');
+                  } else {
+                      urlContainer.classList.add('hidden');
+                      urlContainer.querySelector('input').value = ''; // Clear URL if 'No'
+                  }
+              });
+
+          } else if (action === 'delete') {
+              actionFieldsContainer.innerHTML = `<p style="text-align: center; font-weight: bold;">Are you sure you want to delete this lead?</p>`;
+              actionSubmitBtn.classList.add('hidden'); // Hide the generic save button
+              deleteConfirmationButtons.classList.remove('hidden'); // Show specific Yes/No buttons
+          }
+
+          actionModal.classList.add("visible");
+      }
+      
+      // Task Actions Handler
+      window.handleTaskAction = function(id, action) {
+          const task = allTasks.find(t => t.id === id);
+          taskActionItemId.value = id;
+          taskActionItemAction.value = action;
+          taskActionModalTitle.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)} Task`;
+          taskActionFieldsContainer.innerHTML = '';
+
+          // Reset visibility for task action modal elements
+          taskActionCommentLabel.classList.add('hidden');
+          taskActionComment.classList.add('hidden');
+          taskActionComment.value = ''; // Clear comment field
+          taskActionSubmitBtn.classList.remove('hidden');
+          taskDeleteConfirmationButtons.classList.add('hidden');
+
+          if (action === 'edit') {
+              taskActionFieldsContainer.innerHTML = `
+                  <label>Task Type:</label>
+                  <select name="type" required>
+                      ${Array.from(document.querySelector('#task-form select[name="type"]').options).map(opt => `<option value="${opt.value}" ${opt.value === task.type ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
+                  </select>
+                  <label>Date:</label>
+                  <input name="date" type="date" value="${task.date}" required>
+                  <label>Time:</label>
+                  <select name="time" required>
+                      ${Array.from(document.querySelector('#task-form select[name="time"]').options).map(opt => `<option value="${opt.value}" ${opt.value === task.time ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
+                  </select>
+                  <label>Comment:</label>
+                  <textarea name="comment" maxlength="1500, rows="4">${task.comment || ''}</textarea>
+              `;
+          } else if (action === 'delete') {
+              taskActionFieldsContainer.innerHTML = `<p style="text-align: center; font-weight: bold;">Are you sure you want to delete this task?</p>`;
+              taskActionSubmitBtn.classList.add('hidden'); // Hide the generic save button
+              taskDeleteConfirmationButtons.classList.remove('hidden'); // Show specific Yes/No buttons
+              taskConfirmDeleteYes.textContent = "Yes, Delete";
+               taskConfirmDeleteNo.textContent = "No, Cancel";
+          } else if (action === 'complete') {
+               taskActionFieldsContainer.innerHTML = `<p style="text-align: center; font-weight: bold;">Are you sure you want to mark this task as complete?</p>`;
+               taskActionSubmitBtn.classList.add('hidden'); // Hide the generic save button
+               taskDeleteConfirmationButtons.classList.remove('hidden'); // Use Yes/No for completion too
+               taskConfirmDeleteYes.textContent = "Yes, Complete";
+               taskConfirmDeleteNo.textContent = "No, Keep Open";
+          }
+          taskActionModal.classList.add("visible");
+      };
+
+      // Action Modal Submission (for leads)
+      actionForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = actionItemId.value;
+          const type = actionItemType.value;
+          const action = actionItemAction.value;
+          // Comment is only relevant for moves/edits where it's explicitly shown
+          
+          if (type === 'lead') {
+              const leadRef = doc(db, "leads", id);
+              if (action === 'delete') {
+                  // This branch should not be reached by form submit for delete, handled by Yes/No buttons
+              } else if (action === 'move') {
+                  const newStatus = actionForm.querySelector('[name="newStatus"]').value;
+                  const updatedData = { status: newStatus };
+                  const referralNameInput = actionForm.querySelector('#referralName');
+                  const referralCommentInput = actionForm.querySelector('#referralComment');
+                  
+                  if (newStatus === 'Referral' && referralNameInput && referralCommentInput) {
+                      updatedData.referralName = referralNameInput.value;
+                      updatedData.referralComment = referralCommentInput.value;
+                  } else {
+                      // Ensure referral fields are removed if status is not 'Referral'
+                      updatedData.referralName = '';
+                      updatedData.referralComment = '';
+                  }
+                  await updateDoc(leadRef, updatedData);
+              } else if (action === 'edit') {
+                  const formData = new FormData(actionForm);
+                  const updatedData = Object.fromEntries(formData);
+                  if (updatedData.hasWebsite === 'No') {
+                      delete updatedData.websiteUrl;
+                  }
+                  await updateDoc(leadRef, updatedData);
+              }
+          }
+
+          actionModal.classList.remove("visible");
+      });
+
+      // Handle "Yes, Delete" for lead deletion
+      confirmDeleteYes.addEventListener('click', async () => {
+          const id = actionItemId.value;
+          const leadRef = doc(db, "leads", id);
+          await deleteDoc(leadRef);
+          actionModal.classList.remove("visible");
+      });
+
+      // Handle "No, Cancel" for lead deletion
+      confirmDeleteNo.addEventListener('click', () => {
+          actionModal.classList.remove("visible");
+      });
+
+      // Task Action Modal Submission (for edit)
+      taskActionForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = taskActionItemId.value;
+          const action = taskActionItemAction.value;
+          
+          if (action === 'edit') {
+              const formData = new FormData(taskActionForm);
+              const updatedData = {
+                  type: formData.get('type') || '',
+                  date: formData.get('date') || '',
+                  time: formData.get('time') || '',
+                  comment: formData.get('comment') || ''
+              };
+              const taskRef = doc(db, "tasks", id);
+              await updateDoc(taskRef, updatedData);
+          }
+          taskActionModal.classList.remove("visible");
+      });
+
+      // Handle "Yes" for task deletion/completion
+      taskConfirmDeleteYes.addEventListener('click', async () => {
+          const id = taskActionItemId.value;
+          const taskAction = taskActionItemAction.value;
+          const taskRef = doc(db, "tasks", id);
+          
+          if (taskAction === 'delete' || taskAction === 'complete') {
+              await deleteDoc(taskRef);
+          }
+          taskActionModal.classList.remove("visible");
+      });
+
+      // Handle "No" for task deletion/completion
+      taskConfirmDeleteNo.addEventListener('click', () => {
+          taskActionModal.classList.remove("visible");
+      });
+
+      window.filterLeads = function(filter) {
+          currentFilter = filter;
+          document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+          document.querySelector(`.tab-button[onclick="filterLeads('${filter}')"]`).classList.add('active');
+          renderLeads(filter);
+      };
+    </script>
+</body>
+</html>
