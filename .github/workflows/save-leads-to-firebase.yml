@@ -1,0 +1,25 @@
+name: Save Leads to Firebase
+
+on:
+  workflow_dispatch: # Allows you to manually trigger the workflow from GitHub
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run save-to-firebase script
+      env:
+        FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+      run: node save-to-firebase.js
