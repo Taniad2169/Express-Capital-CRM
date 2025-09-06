@@ -677,22 +677,17 @@
       import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
       import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 
-      // IMPORTANT: This block has been updated with the API key you provided.
-      // Do not change this unless your Firebase configuration changes.
-      const firebaseConfig = {
-            
-        authDomain: "express-crm.firebaseapp.com",
-        projectId: "express-crm",
-        storageBucket: "express-crm.firebasestorage.app",
-        messagingSenderId: "379523906404",
-        appId: "1:379523906404:web:d1e3b5557c6b35f3c8d871",
-        measurementId: "G-VVV55R1YD9"
-      };
+     
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      const analytics = getAnalytics(app);
+     const firebaseConfig = {
+    apiKey: "__API_KEY__", // This will be replaced by GitHub Actions
+    authDomain: "express-crm.firebaseapp.com",
+    projectId: "express-crm",
+    storageBucket: "express-crm.firebasestorage.app",
+    messagingSenderId: "379523906404",
+    appId: "1:379523906404:web:d1eb5557c6b35f3c8d871",
+    measurementId: "G-VVV55R1YD9"
+};
 
       // Your CRM JavaScript
       // --- Data Definitions ---
@@ -915,8 +910,8 @@
           triggerConfetti();
 
           const countdownMessages = {
-              3: "🎉 You're on fire!",
-              2: "🔥 Keep up the momentum!",
+              3: "🎉 You're on fire Woop Woop!",
+              2: "🔥 Let's Go! Keep up the momentum!",
           };
           
           let count = dailyLeadsLeft >= 3 ? 3 : dailyLeadsLeft;
