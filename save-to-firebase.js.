@@ -1,0 +1,30 @@
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
+
+// Get credentials from environment variable set in GitHub Actions
+const serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
+
+initializeApp({
+  credential: cert(serviceAccount)
+});
+
+const db = getFirestore();
+
+// This is a placeholder. Replace with actual lead data or logic to fetch leads.
+const lead = {
+  name: "Sample Lead",
+  email: "lead@example.com",
+  timestamp: Date.now()
+};
+
+async function saveLead() {
+  try {
+    const res = await db.collection('leads').add(lead);
+    console.log('Lead saved with ID:', res.id);
+  } catch (err) {
+    console.error('Error saving lead:', err);
+    process.exit(1);
+  }
+}
+
+saveLead();
