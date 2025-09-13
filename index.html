@@ -749,9 +749,14 @@
     measurementId: "G-VVV55R1YD9"
 };
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+      // Initialize Firebase (with error handling for local testing)
+      let app, db;
+      try {
+          app = initializeApp(firebaseConfig);
+          db = getFirestore(app);
+      } catch (error) {
+          console.warn('Firebase initialization failed (expected in local testing):', error);
+      }
 
       // Your CRM JavaScript
       // --- Data Definitions ---
@@ -846,20 +851,53 @@
       });
 
       // --- Data Management (Firestore) ---
-      const leadsCollection = collection(db, "leads");
-      const tasksCollection = collection(db, "tasks");
-      
-      // Use onSnapshot for real-time updates
-      onSnapshot(leadsCollection, (snapshot) => {
-          allLeads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderLeads(currentFilter);
-          updateCountdown();
-      });
+      let leadsCollection, tasksCollection;
+      if (db) {
+          leadsCollection = collection(db, "leads");
+          tasksCollection = collection(db, "tasks");
+          
+          // Use onSnapshot for real-time updates
+          onSnapshot(leadsCollection, (snapshot) => {
+              allLeads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              renderLeads(currentFilter);
+              updateCountdown();
+          });
 
-      onSnapshot(tasksCollection, (snapshot) => {
-          allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderTasks();
-      });
+          onSnapshot(tasksCollection, (snapshot) => {
+              allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              renderTasks();
+          });
+      }
+      
+      // Fallback: Setup owner event listeners (for cases where DOMContentLoaded doesn't work due to module errors)
+      setTimeout(() => {
+          if (owner1OwnershipInput && owner2Section && !owner1OwnershipInput.hasAttribute('data-listener-attached')) {
+              owner1OwnershipInput.addEventListener('input', (e) => {
+                  const ownership = parseInt(e.target.value) || 0;
+                  if (ownership < 100 && ownership > 0) {
+                      owner2Section.classList.remove('hidden');
+                      const owner2Inputs = owner2Section.querySelectorAll('input[name^="owner2"]');
+                      owner2Inputs.forEach(input => {
+                          if (input.name !== 'owner2Ownership') {
+                              input.required = true;
+                          }
+                      });
+                      if (owner2OwnershipInput) {
+                          owner2OwnershipInput.value = 100 - ownership;
+                          owner2OwnershipInput.required = true;
+                      }
+                  } else {
+                      owner2Section.classList.add('hidden');
+                      const owner2Inputs = owner2Section.querySelectorAll('input[name^="owner2"]');
+                      owner2Inputs.forEach(input => {
+                          input.required = false;
+                          input.value = '';
+                      });
+                  }
+              });
+              owner1OwnershipInput.setAttribute('data-listener-attached', 'true');
+          }
+      }, 500);
 
       // --- Countdown Logic ---
       function updateCountdown() {
@@ -1305,7 +1343,7 @@
                   </select>
                   <label>Best Time to Call:</label>
                   <select name="bestTime" required>
-                      ${Array.from(document.querySelector('select[name="bestTime"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestTime ? 'selected' : ''}>${opt.textContent</option>`).join('')}
+                      ${Array.from(document.querySelector('select[name="bestTime"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestTime ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
                   </select>
                   <label>Best Way to Contact:</label>
                   <select name="bestWay" required>
