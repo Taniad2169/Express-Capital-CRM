@@ -458,6 +458,9 @@
 
             <div id="crm-content">
                 <div class="panel" id="application-intake">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <img src="banner-image.svg" alt="Express Capital Associates Banner" style="max-width: 100%; height: auto; border-radius: 8px;">
+                    </div>
                     <h2>Add New Lead</h2>
                     <form id="lead-form">
                         <label>Full Name:</label>
@@ -467,9 +470,9 @@
                         <label>Email Address:</label>
                         <input name="email" type="email" required>
                         <label>Business Name:</label>
-                        <input name="businessName">
+                        <input name="businessName" required>
                         <label>City:</label>
-                        <input name="city">
+                        <input name="city" required>
                         <label>State:</label>
                         <select name="state" required>
                             <option value="">Select State</option>
@@ -596,6 +599,63 @@
                             <label>Website URL:</label>
                             <input name="websiteUrl" id="website-url" value="https://www.">
                         </div>
+
+                        <!-- Owner 1 Section -->
+                        <h3 style="color: #001f3f; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #FFD700; padding-bottom: 0.5rem;">Owner 1 Information</h3>
+                        
+                        <label>Owner 1 Name:</label>
+                        <input name="owner1Name" required>
+                        
+                        <label>Owner 1 Date of Birth:</label>
+                        <input name="owner1DOB" type="date" required>
+                        
+                        <label>Owner 1 Social Security Number:</label>
+                        <input name="owner1SSN" required pattern="[0-9]{3}-[0-9]{2}-[0-9]{4}" placeholder="XXX-XX-XXXX">
+                        
+                        <label>Owner 1 Home Address:</label>
+                        <input name="owner1Address" required>
+                        
+                        <label>Owner 1 Phone Number:</label>
+                        <input name="owner1Phone" required>
+                        
+                        <label>Owner 1 Email:</label>
+                        <input name="owner1Email" type="email" required>
+                        
+                        <label>Owner 1 Ownership Percentage:</label>
+                        <input name="owner1Ownership" type="number" min="1" max="100" required id="owner1-ownership">
+
+                        <!-- Owner 2 Section (Conditional) -->
+                        <div id="owner2-section" class="hidden">
+                            <h3 style="color: #001f3f; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #FFD700; padding-bottom: 0.5rem;">Owner 2 Information</h3>
+                            
+                            <label>Owner 2 Name:</label>
+                            <input name="owner2Name">
+                            
+                            <label>Owner 2 Date of Birth:</label>
+                            <input name="owner2DOB" type="date">
+                            
+                            <label>Owner 2 Social Security Number:</label>
+                            <input name="owner2SSN" pattern="[0-9]{3}-[0-9]{2}-[0-9]{4}" placeholder="XXX-XX-XXXX">
+                            
+                            <label>Owner 2 Home Address:</label>
+                            <input name="owner2Address">
+                            
+                            <label>Owner 2 Phone Number:</label>
+                            <input name="owner2Phone">
+                            
+                            <label>Owner 2 Email:</label>
+                            <input name="owner2Email" type="email">
+                            
+                            <label>Owner 2 Ownership Percentage:</label>
+                            <input name="owner2Ownership" type="number" min="1" max="100" id="owner2-ownership">
+                        </div>
+
+                        <!-- Bank Statement Upload Section -->
+                        <h3 style="color: #001f3f; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #FFD700; padding-bottom: 0.5rem;">Required Documents</h3>
+                        
+                        <label>Bank Statements (4 months required):</label>
+                        <input name="bankStatements" type="file" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <small style="color: #666; font-style: italic;">Please upload 4 months of bank statements. Multiple files can be selected.</small>
                         <button type="submit">Save Lead</button>
                     </form>
                 </div>
@@ -689,6 +749,15 @@
     measurementId: "G-VVV55R1YD9"
 };
 
+      // Initialize Firebase (with error handling for local testing)
+      let app, db;
+      try {
+          app = initializeApp(firebaseConfig);
+          db = getFirestore(app);
+      } catch (error) {
+          console.warn('Firebase initialization failed (expected in local testing):', error);
+      }
+
       // Your CRM JavaScript
       // --- Data Definitions ---
       const LEAD_STATUSES = [
@@ -731,6 +800,9 @@
       const hasWebsiteSelect = document.getElementById('has-website');
       const websiteUrlContainer = document.getElementById('website-url-container');
       const websiteUrlInput = document.getElementById('website-url');
+      const owner1OwnershipInput = document.getElementById('owner1-ownership');
+      const owner2Section = document.getElementById('owner2-section');
+      const owner2OwnershipInput = document.getElementById('owner2-ownership');
       const countdownContainer = document.getElementById("countdown-container");
       const countdownNumber = document.getElementById("countdown-number");
       const countdownMessage = document.getElementById("countdown-message");
@@ -779,20 +851,53 @@
       });
 
       // --- Data Management (Firestore) ---
-      const leadsCollection = collection(db, "leads");
-      const tasksCollection = collection(db, "tasks");
-      
-      // Use onSnapshot for real-time updates
-      onSnapshot(leadsCollection, (snapshot) => {
-          allLeads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderLeads(currentFilter);
-          updateCountdown();
-      });
+      let leadsCollection, tasksCollection;
+      if (db) {
+          leadsCollection = collection(db, "leads");
+          tasksCollection = collection(db, "tasks");
+          
+          // Use onSnapshot for real-time updates
+          onSnapshot(leadsCollection, (snapshot) => {
+              allLeads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              renderLeads(currentFilter);
+              updateCountdown();
+          });
 
-      onSnapshot(tasksCollection, (snapshot) => {
-          allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderTasks();
-      });
+          onSnapshot(tasksCollection, (snapshot) => {
+              allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              renderTasks();
+          });
+      }
+      
+      // Fallback: Setup owner event listeners (for cases where DOMContentLoaded doesn't work due to module errors)
+      setTimeout(() => {
+          if (owner1OwnershipInput && owner2Section && !owner1OwnershipInput.hasAttribute('data-listener-attached')) {
+              owner1OwnershipInput.addEventListener('input', (e) => {
+                  const ownership = parseInt(e.target.value) || 0;
+                  if (ownership < 100 && ownership > 0) {
+                      owner2Section.classList.remove('hidden');
+                      const owner2Inputs = owner2Section.querySelectorAll('input[name^="owner2"]');
+                      owner2Inputs.forEach(input => {
+                          if (input.name !== 'owner2Ownership') {
+                              input.required = true;
+                          }
+                      });
+                      if (owner2OwnershipInput) {
+                          owner2OwnershipInput.value = 100 - ownership;
+                          owner2OwnershipInput.required = true;
+                      }
+                  } else {
+                      owner2Section.classList.add('hidden');
+                      const owner2Inputs = owner2Section.querySelectorAll('input[name^="owner2"]');
+                      owner2Inputs.forEach(input => {
+                          input.required = false;
+                          input.value = '';
+                      });
+                  }
+              });
+              owner1OwnershipInput.setAttribute('data-listener-attached', 'true');
+          }
+      }, 500);
 
       // --- Countdown Logic ---
       function updateCountdown() {
@@ -947,6 +1052,47 @@
       // --- Event Handlers ---
       document.addEventListener("DOMContentLoaded", () => {
           populateDailyTargetSelect();
+          
+          // Handle Owner 1 ownership percentage change to show/hide Owner 2 section
+          if (owner1OwnershipInput) {
+              owner1OwnershipInput.addEventListener('input', (e) => {
+                  const ownership = parseInt(e.target.value) || 0;
+                  if (ownership < 100 && ownership > 0) {
+                      owner2Section.classList.remove('hidden');
+                      // Make Owner 2 fields required when section is visible
+                      const owner2Inputs = owner2Section.querySelectorAll('input[name^="owner2"]');
+                      owner2Inputs.forEach(input => {
+                          if (input.name !== 'owner2Ownership') {
+                              input.required = true;
+                          }
+                      });
+                      // Auto-calculate Owner 2 ownership
+                      if (owner2OwnershipInput) {
+                          owner2OwnershipInput.value = 100 - ownership;
+                          owner2OwnershipInput.required = true;
+                      }
+                  } else {
+                      owner2Section.classList.add('hidden');
+                      // Remove required attribute and clear values when hidden
+                      const owner2Inputs = owner2Section.querySelectorAll('input[name^="owner2"]');
+                      owner2Inputs.forEach(input => {
+                          input.required = false;
+                          input.value = '';
+                      });
+                  }
+              });
+          }
+
+          // Handle Owner 2 ownership percentage change to update Owner 1
+          if (owner2OwnershipInput) {
+              owner2OwnershipInput.addEventListener('input', (e) => {
+                  const owner2Ownership = parseInt(e.target.value) || 0;
+                  const owner1Ownership = 100 - owner2Ownership;
+                  if (owner1Ownership >= 0 && owner1Ownership <= 100) {
+                      owner1OwnershipInput.value = owner1Ownership;
+                  }
+              });
+          }
       });
 
       dailyTargetSelect.addEventListener("change", (e) => {
@@ -1031,6 +1177,14 @@
             bestTime: formObject.bestTime || '',
             bestWay: formObject.bestWay || '',
             hasWebsite: formObject.hasWebsite || '',
+            // Owner 1 Information
+            owner1Name: formObject.owner1Name || '',
+            owner1DOB: formObject.owner1DOB || '',
+            owner1SSN: formObject.owner1SSN || '',
+            owner1Address: formObject.owner1Address || '',
+            owner1Phone: formObject.owner1Phone || '',
+            owner1Email: formObject.owner1Email || '',
+            owner1Ownership: formObject.owner1Ownership || '',
             status: "Interested"
           };
           
@@ -1039,10 +1193,28 @@
             newLead.websiteUrl = formObject.websiteUrl || '';
           }
 
+          // Add Owner 2 information if provided
+          if (formObject.owner2Name) {
+            newLead.owner2Name = formObject.owner2Name || '';
+            newLead.owner2DOB = formObject.owner2DOB || '';
+            newLead.owner2SSN = formObject.owner2SSN || '';
+            newLead.owner2Address = formObject.owner2Address || '';
+            newLead.owner2Phone = formObject.owner2Phone || '';
+            newLead.owner2Email = formObject.owner2Email || '';
+            newLead.owner2Ownership = formObject.owner2Ownership || '';
+          }
+
+          // Note: Bank statements file handling would typically require additional server-side processing
+          // For now, we'll just note that files were uploaded
+          if (formObject.bankStatements) {
+            newLead.bankStatementsUploaded = "Yes";
+          }
+
           await addDoc(leadsCollection, newLead);
           leadForm.reset();
           websiteUrlContainer.classList.add('hidden');
           websiteUrlInput.value = 'https://www.'; // Reset URL to default
+          owner2Section.classList.add('hidden'); // Hide Owner 2 section after submission
           startCountdownCelebration();
       });
 
@@ -1077,6 +1249,28 @@
                   <p><b>Best Time to Call:</b> ${lead.bestTime || 'N/A'}</p>
                   <p><b>Best Way to Contact:</b> ${lead.bestWay || 'N/A'}</p>
                   <p><b>Website:</b> ${lead.websiteUrl || 'N/A'}</p>
+                  <hr style="margin: 1rem 0; border: 1px solid #ddd;">
+                  <h4 style="color: #001f3f; margin-bottom: 0.5rem;">Owner 1 Information</h4>
+                  <p><b>Owner 1 Name:</b> ${lead.owner1Name || 'N/A'}</p>
+                  <p><b>Owner 1 DOB:</b> ${lead.owner1DOB || 'N/A'}</p>
+                  <p><b>Owner 1 SSN:</b> ${lead.owner1SSN || 'N/A'}</p>
+                  <p><b>Owner 1 Address:</b> ${lead.owner1Address || 'N/A'}</p>
+                  <p><b>Owner 1 Phone:</b> ${lead.owner1Phone || 'N/A'}</p>
+                  <p><b>Owner 1 Email:</b> ${lead.owner1Email || 'N/A'}</p>
+                  <p><b>Owner 1 Ownership:</b> ${lead.owner1Ownership || 'N/A'}%</p>
+                  ${lead.owner2Name ? `
+                    <hr style="margin: 1rem 0; border: 1px solid #ddd;">
+                    <h4 style="color: #001f3f; margin-bottom: 0.5rem;">Owner 2 Information</h4>
+                    <p><b>Owner 2 Name:</b> ${lead.owner2Name || 'N/A'}</p>
+                    <p><b>Owner 2 DOB:</b> ${lead.owner2DOB || 'N/A'}</p>
+                    <p><b>Owner 2 SSN:</b> ${lead.owner2SSN || 'N/A'}</p>
+                    <p><b>Owner 2 Address:</b> ${lead.owner2Address || 'N/A'}</p>
+                    <p><b>Owner 2 Phone:</b> ${lead.owner2Phone || 'N/A'}</p>
+                    <p><b>Owner 2 Email:</b> ${lead.owner2Email || 'N/A'}</p>
+                    <p><b>Owner 2 Ownership:</b> ${lead.owner2Ownership || 'N/A'}%</p>
+                  ` : ''}
+                  <hr style="margin: 1rem 0; border: 1px solid #ddd;">
+                  <p><b>Bank Statements Uploaded:</b> ${lead.bankStatementsUploaded || 'No'}</p>
                   <p><b>Status:</b> ${lead.status || 'N/A'}</p>
                   ${lead.referralName ? `<p><b>Referred By:</b> ${lead.referralName}</p>` : ''}
                   ${lead.referralComment ? `<p><b>Referral Comment:</b> ${lead.referralComment}</p>` : ''}
@@ -1149,7 +1343,7 @@
                   </select>
                   <label>Best Time to Call:</label>
                   <select name="bestTime" required>
-                      ${Array.from(document.querySelector('select[name="bestTime"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestTime ? 'selected' : ''}>${opt.textContent</option>`).join('')}
+                      ${Array.from(document.querySelector('select[name="bestTime"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestTime ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
                   </select>
                   <label>Best Way to Contact:</label>
                   <select name="bestWay" required>
