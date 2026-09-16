@@ -2,1332 +2,1539 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>WebSwan CRM & Task Management</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Express Capital Associates CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* General Styles */
         body {
-            background-color: #f4f4f9;
-            color: #333;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
-        .main-content-wrapper {
-            flex-grow: 1;
-            padding: 1rem;
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
+        body.modal-open { overflow: hidden; }
+        .container { max-width: 1200px; margin: 0 auto; position: relative; }
+        .header {
+            background-color: #2F3746; color: white; padding: 40px;
+            border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center; position: relative;
         }
-        .container {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .target-widget {
+            background: #14395d; border-radius: 22px 38px 33px 33px/38px 38px 33px 33px;
+            width: 85px; height: 75px; position: absolute; top: 20px; left: 20px;
+            display: flex; flex-direction: column; align-items: flex-start;
+            justify-content: flex-start; padding: 10px 0 0 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.10); z-index: 1000;
         }
-        header {
-            text-align: center;
-            padding: 1.5rem 0;
-            background-color: #001f3f;
-            color: #FFD700;
-            border-radius: 8px 8px 0 0;
-            position: relative;
+        .target-btn { background: none; border: none; font-size: 1.7rem; line-height:1; cursor: pointer; margin-bottom: 3px; transition: transform 0.1s ease; user-select: none; }
+        .target-btn:active { transform: scale(0.95) !important; }
+        .target-count { color:#fff; font-size:1.1rem; font-weight: bold; margin-left: 7px; }
+        .target-reset-btn {
+            background: #e5f1fa; border: none; border-radius: 999px; font-size: 1.1rem;
+            color:#14395d; font-weight: bold; width: 34px; height: 27px;
+            margin-top:7px; margin-left: 23px; cursor: pointer; transition: transform 0.1s ease; user-select: none;
         }
-        .icon-btn {
-            background: transparent;
-            font-size: 2rem;
-            color: #FFD700;
-            border: none;
-            cursor: pointer;
-            position: absolute;
-            top: 15px;
+        .target-reset-btn:active { transform: scale(0.95) !important; }
+        .footer {
+            background-color: #2F3746; color: white; padding: 20px;
+            border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center; margin-top: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
         }
-        .admin-login-btn {
-            right: 20px;
+        .footer-laptop-container {
+            width: 150px; height: 100px; background-color: rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 8px; font-size: 0.875rem;
         }
-        .exit-btn {
-            right: 70px;
+        .footer-verse { font-size: 1.125rem; font-style: italic; margin-bottom: 10px; }
+        .footer-countdown-section { display: flex; align-items: center; gap: 10px; }
+        .footer-countdown-label { font-size: 1rem; }
+        .footer-countdown-select { padding: 5px; border-radius: 5px; border: 1px solid #4B5563; background-color: #374151; color: white; }
+        .footer-countdown-value { font-size: 1.5rem; font-weight: bold; padding: 5px 15px; border: 1px solid white; border-radius: 5px; min-width: 60px; text-align: center; }
+        .footer-lock-btn { background-color: transparent; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.1s ease; user-select: none; z-index: 1000; color: gold; }
+        .footer-lock-btn:active { transform: scale(0.95) !important; }
+        #countdownDisplay { font-size: 18px; font-weight: bold; color: #333; margin: 15px 0; }
+        #countdown { color: red; font-size: 20px; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #4B5563; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row > .form-group { flex: 1; margin-bottom: 0; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 0.5rem; font-size: 1rem; }
+        .hidden { display: none; }
+        .google-sheet-button {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 15px; background: #0F9D58; color: white; border: none;
+            border-radius: 8px; cursor: pointer; transition: all 0.3s; margin-top: 20px; font-weight: bold;
         }
-        .panel {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
-        }
-        h1, h2, h3 {
-            color: #001f3f;
-            margin-top: 0;
-            text-align: center;
-        }
-        h2 {
-            margin-bottom: 1.5rem;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 1rem;
-            color: #555;
-        }
-        input, select, textarea {
-            display: block;
-            width: 100%;
-            margin: 0.5rem 0 1rem 0;
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        button {
-            display: inline-block;
-            background-color: #FFD700;
-            color: #001f3f;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-            margin-top: 1rem;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #ffe066;
-        }
-        .btn-group {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .lead-card, .task-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-left: 5px solid #001f3f;
-            border-radius: 4px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        .lead-card b, .task-card b {
-            color: #001f3f;
-        }
-        .modal-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-bg.visible {
-            display: flex;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-        .modal-content.scrollable {
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 2rem;
-            cursor: pointer;
-            color: #555;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .footer-bar {
-            text-align: center;
-            padding: 1rem 0;
-            background-color: #001f3f;
-            color: #FFD700;
-            border-radius: 0 0 8px 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            width: 100%;
-        }
-        .footer-countdown-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .footer-count-current {
-            background-color: #FFD700;
-            color: #001f3f;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .footer-verse {
-            font-style: italic;
-            font-size: 0.9rem;
-        }
-        .tab-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 1rem;
-        }
-        .tab-button {
-            background-color: #ddd;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 4px 4px 0 0;
-            margin-right: 2px;
-            font-weight: bold;
-        }
-        .tab-button.active {
-            background-color: #001f3f;
-            color: #FFD700;
-        }
-
-        /* --- Celebration Animations --- */
-        #celebration-modal {
-            background: rgba(0, 0, 0, 0.2);
-            z-index: 2000;
-        }
-        #celebration-modal .modal-content {
-            background: transparent;
-            box-shadow: none;
-            color: white;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .animated-statement {
-            font-size: 3em;
-            font-weight: bold;
-            animation: text-pulse 1.5s infinite alternate;
-        }
-        
-        @keyframes text-pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
-        }
-
-        .bouncing-emoji, .dancing-dollar {
-            font-size: 5em;
-            animation: bounce 1s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .dancing-dollar {
-            color: #FFD700;
-            animation: bounce 1s infinite, slide-right 2s forwards;
-            position: absolute;
-            left: -100px;
-        }
-
-        @keyframes slide-right {
-            from { left: -100px; }
-            to { left: 50%; transform: translateX(-50%); }
-        }
-
-        /* Confetti Animation */
-        .confetti-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            pointer-events: none;
-        }
-        .confetti {
-            width: 10px;
-            height: 10px;
-            background-color: #FFD700;
-            position: absolute;
-            animation: confetti-fall 3s linear forwards;
-            opacity: 0;
-        }
-        .confetti.blue { background-color: #001f3f; }
-        .confetti.red { background-color: #d9534f; }
-        .confetti.green { background-color: #5cb85c; }
-        .confetti.purple { background-color: #6c5ce7; }
-        @keyframes confetti-fall {
-            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* Countdown Styles */
-        #countdown-container {
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        #countdown-number {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-
-        #countdown-message {
-            font-size: 1.5rem;
-            margin-top: 0.5rem;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Delete Confirmation Buttons */
-        .delete-confirmation-buttons {
-            display: flex;
-            justify-content: space-around;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .delete-confirmation-buttons button {
-            width: 48%; /* Adjust for spacing */
-            margin-top: 0; /* Override default button margin */
-        }
-        .delete-confirmation-buttons .delete-yes-btn {
-            background-color: #d9534f; /* Red for delete */
-            color: white;
-        }
-        .delete-confirmation-buttons .delete-yes-btn:hover {
-            background-color: #c9302c;
-        }
-        .delete-confirmation-buttons .delete-no-btn {
-            background-color: #5cb85c; /* Green for cancel */
-            color: white;
-        }
-        .delete-confirmation-buttons .delete-no-btn:hover {
-            background-color: #4cae4c;
-        }
-
-        /* Target Button Styles */
-        .target-section {
-            display: flex;
-            align-items: center;
-            background: #0f4c75;
-            border-radius: 20px;
-            padding: 5px 10px;
-            position: absolute;
-            left: 20px;
-            top: 15px;
-        }
-        .target-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-        }
-        .target-value {
-            margin: 0 8px;
-            font-weight: bold;
-            min-width: 20px;
-            text-align: center;
-            color: white;
-        }
-        .mini-reset {
-            background: #bbe1fa;
-            color: #1b262c;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .google-sheet-button:hover { background: #0c8047; transform: translateY(-2px); }
+        .laptop-animation { display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        .laptop { width: 200px; height: 150px; background: #e0e0e0; border-radius: 10px 10px 0 0; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transform: perspective(500px) rotateY(10deg); animation: float 3s ease-in-out infinite; }
+        .laptop-screen { width: 180px; height: 120px; background: #4285F4; border-radius: 5px; position: absolute; top: 10px; left: 10px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; overflow: hidden; }
+        .laptop-screen::before { content: ""; position: absolute; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent); animation: shine 2s infinite; }
+        .laptop-keyboard { width: 190px; height: 10px; background: #333; border-radius: 0 0 5px 5px; position: absolute; bottom: 10px; left: 5px; }
+        .laptop-base { width: 220px; height: 10px; background: #c0c0c0; border-radius: 0 0 10px 10px; position: absolute; bottom: -10px; left: -10px; }
+        @keyframes float { 0%, 100% { transform: perspective(500px) rotateY(10deg) translateY(0); } 50% { transform: perspective(500px) rotateY(10deg) translateY(-10px); } }
+        @keyframes shine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .swan-image { width: 100px; height: 80px; object-fit: contain; filter: brightness(0) invert(1); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; padding: 20px; border: 1px solid #888; border-radius: 8px; position: relative; max-width: 600px; max-height: 80vh; overflow-y: auto; margin: 50px auto; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; position: absolute; top: 10px; right: 15px; cursor: pointer; }
+        .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+        .modal-input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .modal-button { background-color: #4285F4; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
+        #backOffice { display: none; }
+        .back-office-header { background-color: #2F3746; color: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px; }
+        .tasks-container, .leads-container { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .task-item, .lead-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .task-item:last-child, .lead-item:last-child { border-bottom: none; }
+        .task-item:hover, .lead-item:hover { background-color: #f9fafb; }
+        .back-to-front { background-color: #4F46E5; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
+        .detail-view { display: none; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .action-button { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-complete { background-color: #10B981; color: white; }
+        .btn-edit { background-color: #3B82F6; color: white; }
+        .btn-delete { background-color: #EF4444; color: white; }
+        .btn-cancel { background-color: #6B7280; color: white; }
+        .btn-save { background-color: #10B981; color: white; }
+        .status-filter { margin-bottom: 15px; }
+        .comment-box { margin-top: 15px; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px; background-color: #f9fafb; }
+        .comment-toolbar { margin-bottom: 10px; }
+        .comment-toolbar button { padding: 5px 10px; margin-right: 5px; border: 1px solid #D1D5DB; border-radius: 4px; background-color: white; cursor: pointer; }
+        .comment-textarea { width: 100%; min-height: 100px; padding: 10px; border: 1px solid #D1D5DB; border-radius: 6px; resize: vertical; }
+        #submissionModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000; }
+        #submissionModal .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 400px; margin: 100px auto; text-align: center; }
+        #submissionModal .ok-button { margin-top: 10px; padding: 10px 20px; cursor: pointer; background-color: #4285F4; color: white; border: none; border-radius: 5px; }
+        #celebration { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; z-index:9999; flex-direction: column; justify-content: center; align-items: center; font-size: 3rem; line-height: 1.2; text-align: center; color: white; }
+        .emoji-animated { animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        .overlay.active { display: block; }
+        .move-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 1px solid #ccc; padding: 20px; width: 500px; max-height: 80vh; overflow-y: auto; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-radius: 8px; }
+        .move-modal.active { display: block; }
+        .move-modal ul { list-style: none; padding: 0; margin: 0; }
+        .move-modal li { margin-bottom: 10px; }
+        .move-modal button { width: 100%; padding: 10px; background-color: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s ease; }
+        .move-modal button:hover { background-color: #4338CA; transform: translateY(-2px); }
+        .move-modal .close { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #aaa; }
+        .move-modal h3 { margin-top: 0; margin-bottom: 20px; color: #2F3746; }
+        .action-buttons-lead { display: flex; gap: 10px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }
+        .action-button-lead { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; }
+        .action-button-lead:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn-edit-lead { background-color: #3B82F6; color: white; }
+        .btn-delete-lead { background-color: #EF4444; color: white; }
+        .btn-move-lead { background-color: #8B5CF6; color: white; }
+        .lead-detail-group { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .lead-detail-label { font-weight: bold; color: #4B5563; margin-bottom: 5px; }
+        .lead-detail-value { color: #374151; }
+        .search-lead-container { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .search-input { width: 100%; padding: 12px; border: 2px solid #D1D5DB; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+        .search-input:focus { outline: none; border-color: #4F46E5; }
+        .search-results { margin-top: 15px; max-height: 400px; overflow-y: auto; }
+        .search-result-item { padding: 15px; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s; }
+        .search-result-item:hover { background-color: #F3F4F6; border-color: #4F46E5; }
+        .search-result-name { font-weight: bold; color: #1F2937; margin-bottom: 5px; }
+        .search-result-details { font-size: 14px; color: #6B7280; }
+        .no-results { text-align: center; padding: 20px; color: #9CA3AF; }
+        html { scroll-behavior: smooth; }
+        .roi-container { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; display: none; }
+        .roi-input-group { margin-bottom: 15px; }
+        .roi-input-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #4B5563; }
+        .roi-input-group input { width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 5px; }
+        .roi-results { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 8px; border: 1px solid #E5E7EB; }
+        .roi-result-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #E5E7EB; }
+        .roi-result-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .roi-result-label { font-weight: 500; color: #4B5563; }
+        .roi-result-value { font-weight: 600; color: #1F2937; }
+        .roi-highlight { color: #10B981; font-weight: 700; }
+        .roi-percentage { font-size: 1.2rem; font-weight: 700; color: #10B981; text-align: center; margin-top: 15px; padding: 10px; background-color: #ECFDF5; border-radius: 8px; }
+        .roi-button { background-color: #4F46E5; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 10px; transition: background-color 0.3s; }
+        .roi-button:hover { background-color: #4338CA; }
+        .roi-link { display: block; text-align: center; margin-top: 15px; color: #4F46E5; text-decoration: none; font-weight: 500; }
+        .roi-link:hover { text-decoration: underline; }
+        .roi-toggle-button { background-color: #10B981; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .roi-toggle-button:hover { background-color: #0da271; transform: translateY(-2px); }
+        .crm-toggle-button { background-color: #3B82F6; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .crm-toggle-button:hover { background-color: #2563eb; transform: translateY(-2px); }
+        .telemarketing-toggle-button { background-color: #F59E0B; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .telemarketing-toggle-button:hover { background-color: #D97706; transform: translateY(-2px); }
+        .analysis-toggle-button { background-color: #8B5CF6; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .analysis-toggle-button:hover { background-color: #7C3AED; transform: translateY(-2px); }
+        .credit-repair-toggle-button { background-color: #EC4899; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .credit-repair-toggle-button:hover { background-color: #DB2777; transform: translateY(-2px); }
+        .web-analysis-toggle-button { background-color: #06B6D4; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .web-analysis-toggle-button:hover { background-color: #0891B2; transform: translateY(-2px); }
+        .analysis-insight-toggle-button { background-color: #8B4513; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .analysis-insight-toggle-button:hover { background-color: #654321; transform: translateY(-2px); }
+        .webswan-spin-toggle-button { background: linear-gradient(135deg, #08c6d4 0%, #daeced 100%); color: white; font-weight: bold; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .webswan-spin-toggle-button:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .ws-insight-toggle-button { background-color: #7C3AED; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .ws-insight-toggle-button:hover { background-color: #6D28D9; transform: translateY(-2px); }
+        .webswan-intake-toggle-button { background-color: #059669; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .webswan-intake-toggle-button:hover { background-color: #047857; transform: translateY(-2px); }
+        .cookie-accessibility-toggle-button { background-color: #DC2626; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .cookie-accessibility-toggle-button:hover { background-color: #B91C1C; transform: translateY(-2px); }
+        .calendar-toggle-button { background-color: #9333EA; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .calendar-toggle-button:hover { background-color: #7C3AED; transform: translateY(-2px); }
+        .brand-hub-toggle-button { background-color: #FF6B6B; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .brand-hub-toggle-button:hover { background-color: #FF5252; transform: translateY(-2px); }
+        .prayer-emoji { display: inline-block; animation: bounce 2s infinite; font-size: 1.5rem; margin-left: 10px; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+        .prayer-text { font-size: 1.1rem; line-height: 1.6; font-style: italic; margin-top: 10px; }
+        .security-badge { background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 8px 15px; border-radius: 20px; font-size: 0.875rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; }
+        .filter-info { background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px; margin-bottom: 15px; font-size: 0.875rem; color: #1E40AF; }
+        .scroll-target { scroll-margin-top: 150px; }
+        /* Status badge colors */
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+        .status-new { background: #DBEAFE; color: #1D4ED8; }
+        .status-hot { background: #FEE2E2; color: #DC2626; }
+        .status-interested { background: #FEF3C7; color: #D97706; }
+        .status-demo { background: #D1FAE5; color: #065F46; }
+        .status-client { background: #EDE9FE; color: #6D28D9; }
+        .status-cancelled { background: #F3F4F6; color: #6B7280; }
+        .status-referral { background: #ECFDF5; color: #059669; }
+        .status-all { background: #E0F2FE; color: #0369A1; }
     </style>
 </head>
 <body>
-    <div id="celebration-modal" class="modal-bg">
-        <div class="confetti-container" id="confetti-container"></div>
-        <div class="modal-content">
-            <span class="dancing-dollar hidden">$</span>
-            <span class="bouncing-emoji hidden">😀</span>
-            <div id="countdown-container" class="hidden">
-                <div id="countdown-number"></div>
-                <div id="countdown-message"></div>
+<div id="mainApp" class="container">
+    <div id="frontOffice">
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+            <div class="header">
+                <div class="target-widget">
+                    <button id="targetBtn" class="target-btn"><span style="color:#ff2222;">🎯</span></button>
+                    <div id="targetCount" class="target-count">0</div>
+                    <button id="targetResetBtn" class="target-reset-btn">0</button>
+                </div>
+                <h1 class="text-4xl font-bold">Free Custom Website Demo—Here's What I Can Do for You:</h1>
+                <div class="security-badge"><i class="fas fa-shield-alt"></i> Secure & Protected</div>
+                <ul class="info-box mb-4 text-sm md:text-base">
+                    <li>Show you a custom website demo, so you can see how professional your online presence could be.</li>
+                    <li>Do a free analysis of your current website to identify why it may not be getting you business.</li>
+                    <li>Create a custom calendar and task management system for your appointments, so staying organized is easy and stress-free.</li>
+                </ul>
+                <p class="slogan mt-4 text-center">No pressure, no obligation—if you like what you see, we can talk about working together. If not, you won't pay a thing.</p>
+                <p class="mt-4 text-center">Let's make your business shine online—because a professional website isn't just a page, it's your first impression, your credibility, and your opportunity to attract the right clients.</p>
             </div>
-        </div>
-    </div>
-
-    <div class="modal-bg" id="admin-modal">
-        <div class="modal-content">
-            <button class="close-btn" id="admin-modal-close">×</button>
-            <h2>Admin Login</h2>
-            <form id="admin-login-form">
-                <label>Password:</label>
-                <input type="password" id="admin-password" required autofocus>
-                <button type="submit">Login</button>
-                <div class="error" id="admin-error" style="color: red; margin-top: 10px;"></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-bg" id="view-lead-modal">
-        <div class="modal-content scrollable">
-            <button class="close-btn" id="view-modal-close">×</button>
-            <h2>Lead Details</h2>
-            <div id="view-lead-details"></div>
-        </div>
-    </div>
-
-    <div class="modal-bg" id="action-modal">
-        <div class="modal-content scrollable">
-            <button class="close-btn" id="action-modal-close">×</button>
-            <h2 id="action-modal-title"></h2>
-            <form id="action-form">
-                <input type="hidden" id="action-item-id">
-                <input type="hidden" id="action-item-type">
-                <input type="hidden" id="action-item-action">
-                <div id="action-fields-container"></div>
-                <label id="action-comment-label" class="hidden">Comment (200 words max):</label>
-                <textarea name="comment" id="action-comment" maxlength="1200" rows="4" class="hidden"></textarea>
-                <div id="delete-confirmation-buttons" class="delete-confirmation-buttons hidden">
-                    <button type="button" class="delete-yes-btn" id="confirm-delete-yes">Yes, Delete</button>
-                    <button type="button" class="delete-no-btn" id="confirm-delete-no">No, Cancel</button>
-                </div>
-                <button type="submit" id="action-submit-btn">Save</button>
-            </form>
-        </div>
-    </div>
-    
-    <div class="modal-bg" id="task-action-modal">
-        <div class="modal-content scrollable">
-            <button class="close-btn" id="task-action-modal-close">×</button>
-            <h2 id="task-action-modal-title"></h2>
-            <form id="task-action-form">
-                <input type="hidden" id="task-action-item-id">
-                <input type="hidden" id="task-action-item-action">
-                <div id="task-action-fields-container"></div>
-                <label id="task-action-comment-label" class="hidden">Comment (200 words max):</label>
-                <textarea name="comment" id="task-action-comment" maxlength="1200" rows="4" class="hidden"></textarea>
-                <div id="task-delete-confirmation-buttons" class="delete-confirmation-buttons hidden">
-                    <button type="button" class="delete-yes-btn" id="task-confirm-delete-yes">Yes, Delete</button>
-                    <button type="button" class="delete-no-btn" id="task-confirm-delete-no">No, Cancel</button>
-                </div>
-                <button type="submit" id="task-action-submit-btn">Save</button>
-            </form>
-        </div>
-    </div>
-
-
-    <div class="main-content-wrapper">
-        <div class="container">
-            <header>
-                <div class="target-section">
-                    <button class="target-btn" id="target-btn">🎯</button>
-                    <span class="target-value" id="target-value">0</span>
-                    <button class="mini-reset" id="target-reset">0</button>
-                </div>
-                <h1>Express Capital Associates</h1>
-                <button class="icon-btn exit-btn hidden" id="exit-admin-btn" title="Exit Admin">🔓</button>
-                <button class="icon-btn admin-login-btn" id="admin-login-btn" title="Admin Login">🔑</button>
-            </header>
-
-            <div id="crm-content">
-                <div class="panel" id="application-intake">
-                    <h2>Add New Lead</h2>
-                    <form id="lead-form">
-                        <label>Full Name:</label>
-                        <input name="fullName" required>
-                        <label>Phone Number:</label>
-                        <input name="phone" required>
-                        <label>Email Address:</label>
-                        <input name="email" type="email" required>
-                        <label>Business Name:</label>
-                        <input name="businessName">
-                        <label>City:</label>
-                        <input name="city">
-                        <label>State:</label>
-                        <select name="state" required>
-                            <option value="">Select State</option>
-                            <option value="AL">Alabama</option>
-                            <option value="AK">Alaska</option>
-                            <option value="AZ">Arizona</option>
-                            <option value="AR">Arkansas</option>
-                            <option value="CA">California</option>
-                            <option value="CO">Colorado</option>
-                            <option value="CT">Connecticut</option>
-                            <option value="DE">Delaware</option>
-                            <option value="FL">Florida</option>
-                            <option value="GA">Georgia</option>
-                            <option value="HI">Hawaii</option>
-                            <option value="ID">Idaho</option>
-                            <option value="IL">Illinois</option>
-                            <option value="IN">Indiana</option>
-                            <option value="IA">Iowa</option>
-                            <option value="KS">Kansas</option>
-                            <option value="KY">Kentucky</option>
-                            <option value="LA">Louisiana</option>
-                            <option value="ME">Maine</option>
-                            <option value="MD">Maryland</option>
-                            <option value="MA">Massachusetts</option>
-                            <option value="MI">Michigan</option>
-                            <option value="MN">Minnesota</option>
-                            <option value="MS">Mississippi</option>
-                            <option value="MO">Missouri</option>
-                            <option value="MT">Montana</option>
-                            <option value="NE">Nebraska</option>
-                            <option value="NV">Nevada</option>
-                            <option value="NH">New Hampshire</option>
-                            <option value="NJ">New Jersey</option>
-                            <option value="NM">New Mexico</option>
-                            <option value="NY">New York</option>
-                            <option value="NC">North Carolina</option>
-                            <option value="ND">North Dakota</option>
-                            <option value="OH">Ohio</option>
-                            <option value="OK">Oklahoma</option>
-                            <option value="OR">Oregon</option>
-                            <option value="PA">Pennsylvania</option>
-                            <option value="RI">Rhode Island</option>
-                            <option value="SC">South Carolina</option>
-                            <option value="SD">South Dakota</option>
-                            <option value="TN">Tennessee</option>
-                            <option value="TX">Texas</option>
-                            <option value="UT">Utah</option>
-                            <option value="VT">Vermont</option>
-                            <option value="VA">Virginia</option>
-                            <option value="WA">Washington</option>
-                            <option value="WV">West Virginia</option>
-                            <option value="WI">Wisconsin</option>
-                            <option value="WY">Wyoming</option>
-                        </select>
-                        <label>Service (Reason for MCA):</label>
-                        <select name="service" required>
-                            <option value="">Select Service</option>
-                            <option value="Working Capital">Working Capital</option>
-                            <option value="Payroll">Payroll</option>
-                            <option value="Inventory Purchase">Inventory Purchase</option>
-                            <option value="Equipment Purchase">Equipment Purchase</option>
-                            <option value="Expansion">Business Expansion</option>
-                            <option value="Renovation">Renovation</option>
-                            <option value="Marketing">Marketing & Advertising</option>
-                            <option value="Emergency Funds">Emergency Expenses</option>
-                            <option value="Debt Consolidation">Debt Consolidation</option>
-                            <option value="Seasonal Expenses">Seasonal Cash Flow Needs</option>
-                            <option value="Hiring and Training">Hiring & Training Staff</option>
-                            <option value="Bridging Cash Flow Gaps">Bridge Cash Flow Gaps</option>
-                            <option value="Business Acquisition">Business Acquisition</option>
-                            <option value="Start-up Costs">Start-up Costs</option>
-                            <option value="Website Development">Website Development</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <label>Industry:</label>
-                        <select name="industry" required>
-                            <option value="">Select Industry</option>
-                            <option value="Retail">Retail</option>
-                            <option value="Restaurants">Restaurants</option>
-                            <option value="Construction">Construction</option>
-                            <option value="Healthcare">Healthcare</option>
-                            <option value="Transportation">Transportation & Trucking</option>
-                            <option value="Manufacturing">Manufacturing</option>
-                            <option value="Hospitality">Hospitality / Hotels</option>
-                            <option value="E-commerce">E-commerce</option>
-                            <option value="Franchise">Franchises</option>
-                            <option value="Automotive">Automotive / Car Repair</option>
-                            <option value="Salons & Spas">Salons & Spas</option>
-                            <option value="Food Trucks">Food Trucks</option>
-                            <option value="Medical Practices">Medical Practices</option>
-                            <option value="Dental Offices">Dental Offices</option>
-                            <option value="Gyms & Fitness">Gyms & Fitness Centers</option>
-                            <option value="Landscaping">Landscaping</option>
-                            <option value="Plumbing">Plumbing</option>
-                            <option value="HVAC">HVAC Services</option>
-                            <option value="Car Washes">Car Washes</option>
-                            <option value="Catering">Catering</option>
-                            <option value="Wholesale & Distribution">Wholesale & Distribution</option>
-                            <option value="Printing & Signs">Printing & Sign Shops</option>
-                            <option value="Professional Services">Professional Services</option>
-                            <option value="Other">Other</option>
-                        </select>
-                        <label>Best Time to Call:</label>
-                        <select name="bestTime" required>
-                            <option value="">Select Time</option>
-                            <option value="Morning">Morning</option>
-                            <option value="Afternoon">Afternoon</option>
-                            <option value="Evening">Evening</option>
-                        </select>
-                        <label>Best Way to Contact:</label>
-                        <select name="bestWay" required>
-                            <option value="">Select Way</option>
-                            <option value="Call">Call</option>
-                            <option value="Text">Text</option>
-                            <option value="Email">Email</option>
-                        </select>
-                        <label>Do you have a website?</label>
-                        <select name="hasWebsite" id="has-website" required>
-                            <option value="">Select an option</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
-                        <div id="website-url-container" class="hidden">
-                            <label>Website URL:</label>
-                            <input name="websiteUrl" id="website-url" value="https://www.">
-                        </div>
-                        <button type="submit">Save Lead</button>
-                    </form>
-                </div>
-                
-                <section id="back-office" class="hidden">
-                    <div class="panel">
-                        <h2>Leads List</h2>
-                        <div class="tab-container">
-                            <button class="tab-button active" onclick="filterLeads('all')">All Leads</button>
-                            <button class="tab-button" onclick="filterLeads('Interested')">Interested</button>
-                            <button class="tab-button" onclick="filterLeads('Hot Leads')">Hot Leads</button>
-                            <button class="tab-button" onclick="filterLeads('Prospect')">Prospect</button>
-                            <button class="tab-button" onclick="filterLeads('Clients')">Clients</button>
-                            <button class="tab-button" onclick="filterLeads('Closed Deal')">Closed Deals</button>
-                            <button class="tab-button" onclick="filterLeads('Canceled Deal')">Canceled Deals</button>
-                            <button class="tab-button" onclick="filterLeads('Referral')">Referral</button>
-                        </div>
-                        <div id="lead-list"></div>
+            <div id="countdownDisplay">Submissions left: <span id="countdown">100</span></div>
+            <div class="content-section">
+                <button id="toggleViewBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 mt-4">Go to Back Office</button>
+                <h2 class="text-2xl font-bold mb-6 mt-10">Lead/Application Information</h2>
+                <form id="leadForm">
+                    <div class="form-row">
+                        <div class="form-group"><label for="name">Full Name</label><input type="text" id="name" name="name" required></div>
+                        <div class="form-group"><label for="company">Company Name</label><input type="text" id="company" name="company"></div>
                     </div>
-
-                    <div class="panel">
-                        <h2>Task Management</h2>
-                        <form id="task-form">
-                            <label>Task Type:</label>
-                            <select name="type" required>
-                                <option value="">Select Task</option>
-                                <option value="Call Client">Call Client</option>
-                                <option value="Contact Client">Contact Client</option>
-                                <option value="Zoom Meeting">Zoom Meeting</option>
-                                <option value="Networking">Networking</option>
-                                <option value="Email Document">Email Document</option>
-                                <option value="Prepare Document">Prepare Document</option>
-                                <option value="Call Lender">Call Lender</option>
-                                <option value="Vacation">Vacation</option>
-                                <option value="Doctor's Appointment">Doctor's Appointment</option>
-                                <option value="Travel">Travel</option>
-                                <option value="Relax">Relax</option>
-                                <option value="Work on Deals">Work on Deals</option>
+                    <div class="form-row">
+                        <div class="form-group"><label for="email">Email Address</label><input type="email" id="email" name="email" required></div>
+                        <div class="form-group"><label for="phone">Phone Number</label><input type="tel" id="phone" name="phone" required placeholder="(555)555-5555"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="city">City</label><input type="text" id="city" name="city"></div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <select id="state" name="state">
+                                <option value="">Select State</option>
+                                <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+                                <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+                                <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+                                <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+                                <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+                                <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+                                <option>Missouri</option><option>Montana</option><option>Nebraska</option>
+                                <option>Nevada</option><option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+                                <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+                                <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+                                <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+                                <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+                                <option>Wisconsin</option><option>Wyoming</option>
                             </select>
-                            <label>Date:</label>
-                            <input name="date" type="date" required>
-                            <label>Time:</label>
-                            <select name="time" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="website">Website</label><input type="url" id="website" name="website" placeholder="https://www."></div>
+                        <div class="form-group">
+                            <label for="hasWebsite">Do you have a website?</label>
+                            <select id="hasWebsite" name="hasWebsite"><option value="yes">Yes</option><option value="no">No</option></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="industry">Type of Industry</label>
+                            <select id="industry" name="industry">
+                                <option value="">Select Industry</option>
+                                <option>Doctor</option><option>Dentist</option><option>Dermatologist</option>
+                                <option>Lawyer</option><option>Real Estate Broker</option>
+                                <option>Mortgage Broker</option><option>Chiropractor</option><option>Cosmetic/Plastic Surgeon</option>
+                                <option>Spa</option><option>Solar Company</option><option>Restaurant</option>
+                                <option>Beautician/Hairdresser/Barber</option>
+                                <option>High-Tech</option><option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="otherIndustry">If Other, Describe</label><input type="text" id="otherIndustry" name="otherIndustry" maxlength="120" placeholder="Describe your industry (20 words max)"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="howlonginbusiness">How long in business?</label>
+                            <select id="howlonginbusiness" name="howlonginbusiness">
+                                <option value="">Select</option>
+                                <option value="0-6 months">Start up to 6 months</option>
+                                <option value="6-12 months">6-12 months</option>
+                                <option value="1-2 years">1-2 years</option>
+                                <option value="2-5 years">2-5 years</option>
+                                <option value="5-10 years">5-10 years</option>
+                                <option value="10+ years">10 years+</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="typeofbusiness">Type of Business (e.g. S-Corp, LLC, Sole Prop)</label><input type="text" id="typeofbusiness" name="typeofbusiness"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="serviceinterestedin">Service Interested In</label>
+                            <select id="serviceinterestedin" name="serviceinterestedin">
+                                <option value="">Select Service</option>
+                                <option value="free_demo">Free Demo</option>
+                                <option value="website">Website</option>
+                                <option value="reputation">Reputation Management</option>
+                                <option value="ad_campaign">Ad Campaign</option>
+                                <option value="video_social">Video/Script/Social Media</option>
+                                <option value="seo">SEO</option>
+                                <option value="calendar">Calendar</option>
+                                <option value="form">Form</option>
+                                <option value="lead_form">Lead Generating Form</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="besttime">Best Time to Contact</label>
+                            <select id="besttime" name="besttime">
                                 <option value="">Select Time</option>
-                                <option value="09:00">09:00</option>
-                                <option value="10:00">10:00</option>
-                                <option value="11:00">11:00</option>
-                                <option value="12:00">12:00</option>
-                                <option value="13:00">13:00</option>
-                                <option value="14:00">14:00</option>
-                                <option value="15:00">15:00</option>
-                                <option value="16:00">16:00</option>
-                                <option value="17:00">17:00</option>
+                                <option value="morning">Morning</option>
+                                <option value="afternoon">Afternoon</option>
+                                <option value="evening">Evening</option>
                             </select>
-                            <label>Comment (max 300 words):</label>
-                            <textarea name="comment" maxlength="1500"></textarea>
-                            <button type="submit">Add Task</button>
-                        </form>
-                        <div id="task-list"></div>
+                        </div>
                     </div>
-                </section>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contactway">Best Way to Contact</label>
+                            <select id="contactway" name="contactway">
+                                <option value="">Select Way</option>
+                                <option value="call">Call</option>
+                                <option value="text">Text</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Call Log Fields -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calltime">📞 Time of Call</label>
+                            <select id="calltime" name="calltime">
+                                <option value="">Select Time</option>
+                                <option value="8:00 AM">8:00 AM</option>
+                                <option value="8:30 AM">8:30 AM</option>
+                                <option value="9:00 AM">9:00 AM</option>
+                                <option value="9:30 AM">9:30 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="10:30 AM">10:30 AM</option>
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="11:30 AM">11:30 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="12:30 PM">12:30 PM</option>
+                                <option value="1:00 PM">1:00 PM</option>
+                                <option value="1:30 PM">1:30 PM</option>
+                                <option value="2:00 PM">2:00 PM</option>
+                                <option value="2:30 PM">2:30 PM</option>
+                                <option value="3:00 PM">3:00 PM</option>
+                                <option value="3:30 PM">3:30 PM</option>
+                                <option value="4:00 PM">4:00 PM</option>
+                                <option value="4:30 PM">4:30 PM</option>
+                                <option value="5:00 PM">5:00 PM</option>
+                                <option value="5:30 PM">5:30 PM</option>
+                                <option value="6:00 PM">6:00 PM</option>
+                                <option value="6:30 PM">6:30 PM</option>
+                                <option value="7:00 PM">7:00 PM</option>
+                                <option value="7:30 PM">7:30 PM</option>
+                                <option value="8:00 PM">8:00 PM</option>
+                                <option value="8:30 PM">8:30 PM</option>
+                                <option value="9:00 PM">9:00 PM</option>
+                                <option value="9:30 PM">9:30 PM</option>
+                                <option value="10:00 PM">10:00 PM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="calltimezone">🌎 Time Zone</label>
+                            <select id="calltimezone" name="calltimezone">
+                                <option value="">Select Time Zone</option>
+                                <option value="Eastern">Eastern (ET)</option>
+                                <option value="Central">Central (CT)</option>
+                                <option value="Mountain">Mountain (MT)</option>
+                                <option value="Pacific">Pacific (PT)</option>
+                                <option value="Alaska">Alaska (AKT)</option>
+                                <option value="Hawaii">Hawaii (HT)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calldate">📅 Date of Call</label>
+                            <input type="date" id="calldate" name="calldate">
+                        </div>
+                    </div>
+                    <div class="form-group"><label for="notes">Additional Notes</label><textarea id="notes" name="notes" rows="3" placeholder="Anything else we should know?"></textarea></div>
+                    <button type="submit" id="submitLeadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200">Submit Application</button>
+                </form>
+                <button id="openSheetBtn" class="google-sheet-button"><i class="fab fa-google"></i> Open Google Sheet</button>
+                <div class="laptop-animation">
+                    <div class="laptop"><div class="laptop-screen">CRM SYNC</div><div class="laptop-keyboard"></div><div class="laptop-base"></div></div>
+                </div>
+            </div>
+            <div class="footer" id="mainFooter">
+                <div class="footer-laptop-container">
+                    <p>WebSwan CRM</p>
+                    <img src="https://cdn-icons-png.flaticon.com/512/6168/6168976.png" alt="White Swan" class="swan-image">
+                </div>
+                <div class="footer-verse">I can do all things through Christ Who strengthen me Philippians 4:13</div>
+                <div class="footer-countdown-section">
+                    <div class="footer-countdown-label">Countdown:</div>
+                    <select id="countdownSelect" class="footer-countdown-select"><option value="">Select number</option></select>
+                    <div class="footer-countdown-value" id="countdownValue">100</div>
+                </div>
+                <button class="footer-lock-btn" id="backOfficeLock" title="Login to Back Office"><span role="img" aria-label="lock">🔒</span></button>
             </div>
         </div>
     </div>
 
-    <div class="footer-bar">
-        <div class="footer-countdown-row">
-            <span>Daily Leads Left:</span>
-            <span id="footer-count-current" class="footer-count-current">100</span>
-            <select id="daily-target-select"></select>
+    <div id="backOffice">
+        <button class="back-to-front" id="backToFrontBtn">← Back to Front Office</button>
+        <div class="back-office-header">
+            <h1 class="text-xl font-bold">WebSwan CRM Back Office <span class="security-badge"><i class="fas fa-shield-alt"></i> Secure Access</span></h1>
+            <div class="prayer-text">"Father, thank You for keeping me here. Open every door that leads to the life You still want for me, I surrender my call to You, help me find my clients today and close whatever no longer serves Your plan amen!" <span class="prayer-emoji">🙏</span></div>
         </div>
-        <div class="footer-verse">
-            I can do all things through Christ Who strengthen me Philippians 4:13
+
+        <div class="flex gap-4 mb-4 flex-wrap">
+            <button id="calendarToggleButton" class="calendar-toggle-button"><i class="fas fa-calendar-alt"></i> My Calendar</button>
+            <button id="roiToggleButton" class="roi-toggle-button"><i class="fas fa-calculator"></i> ROI Calculator</button>
+            <button id="crmToggleButton" class="crm-toggle-button"><i class="fas fa-users"></i> CRM Dashboard</button>
+            <button id="telemarketingToggleButton" class="telemarketing-toggle-button"><i class="fas fa-lightbulb"></i> Telemarketing Form</button>
+            <button id="analysisToggleButton" class="analysis-toggle-button"><i class="fas fa-chart-line"></i> Analysis Result</button>
+            <button id="creditRepairToggleButton" class="credit-repair-toggle-button"><i class="fas fa-wrench"></i> Credit Repair CRM</button>
+            <button id="webAnalysisToggleButton" class="web-analysis-toggle-button"><i class="fas fa-search"></i> Web Analysis</button>
+            <button id="analysisInsightToggleButton" class="analysis-insight-toggle-button"><i class="fas fa-chart-bar"></i> WebSwan Analysis Insight</button>
+            <button id="webswanSpinToggleButton" class="webswan-spin-toggle-button"><i class="fas fa-sync-alt"></i> WebSwan Spin</button>
+            <button id="wsInsightToggleButton" class="ws-insight-toggle-button"><i class="fas fa-eye"></i> WS Insight</button>
+            <button id="webswanIntakeToggleButton" class="webswan-intake-toggle-button"><i class="fas fa-clipboard-list"></i> WebSwan Intake</button>
+            <button id="cookieAccessibilityToggleButton" class="cookie-accessibility-toggle-button"><i class="fas fa-cookie"></i> Cookie & Accessibility</button>
+            <button id="brandHubToggleButton" class="brand-hub-toggle-button"><i class="fas fa-palette"></i> Interactive Brand Hub</button>
+        </div>
+
+        <!-- ROI Calculator -->
+        <div class="roi-container scroll-target" id="roiContainer">
+            <h2 class="text-2xl font-bold mb-6">ROI Calculator</h2>
+            <p class="mb-4">Calculate your potential return on investment with our services.</p>
+            <div class="roi-input-group"><label>Current Monthly Leads</label><input type="number" id="monthlyLeads" min="0" value="10"></div>
+            <div class="roi-input-group"><label>Current Conversion Rate (%)</label><input type="number" id="conversionRate" min="0" max="100" value="5"></div>
+            <div class="roi-input-group"><label>Average Sale Value ($)</label><input type="number" id="averageSale" min="0" value="1000"></div>
+            <div class="roi-input-group"><label>Expected Increase in Leads (%)</label><input type="number" id="expectedIncrease" min="0" max="1000" value="50"></div>
+            <div class="roi-input-group"><label>Monthly Service Cost ($)</label><input type="number" id="serviceCost" min="0" value="500"></div>
+            <button id="calculateROI" class="roi-button">Calculate ROI</button>
+            <div class="roi-results" id="roiResults" style="display:none;">
+                <div class="roi-result-item"><span class="roi-result-label">Current Monthly Revenue:</span><span class="roi-result-value" id="currentRevenue">$0</span></div>
+                <div class="roi-result-item"><span class="roi-result-label">Projected Monthly Revenue:</span><span class="roi-result-value" id="projectedRevenue">$0</span></div>
+                <div class="roi-result-item"><span class="roi-result-label">Monthly Revenue Increase:</span><span class="roi-result-value" id="revenueIncrease">$0</span></div>
+                <div class="roi-result-item"><span class="roi-result-label">Monthly Profit After Service Cost:</span><span class="roi-result-value" id="monthlyProfit">$0</span></div>
+                <div class="roi-percentage" id="roiPercentage">0% ROI</div>
+            </div>
+            <a href="https://taniad2169.github.io/WebSwan-ROI/" target="_blank" class="roi-link">View Full ROI Calculator →</a>
+        </div>
+
+        <!-- CRM Dashboard -->
+        <div id="crmDashboard">
+            <div class="search-lead-container">
+                <h2 class="text-2xl font-bold mb-4">Search Leads by Industry</h2>
+                <input type="text" id="searchLeadInput" class="search-input" placeholder="Type industry: Real Estate, Mortgage, Chiropractor, Doctor, Lawyer, etc...">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+            <div class="tasks-container">
+                <h2 class="text-2xl font-bold mb-4">Task Management</h2>
+                <div class="status-filter">
+                    <label for="taskFilter">Filter Tasks: </label>
+                    <select id="taskFilter">
+                        <option value="all">All Tasks</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    <button id="addNewTaskBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">New Task</button>
+                    <button id="refreshTasksBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ml-2"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="task-list"></div>
+            </div>
+            <div id="taskDetail" class="detail-view">
+                <h2 class="text-2xl font-bold mb-4">Task Details</h2>
+                <div class="form-group">
+                    <label for="taskType">Task Type</label>
+                    <select id="taskType">
+                        <option value="call client">Call Client</option>
+                        <option value="work on demo">Work on Demo</option>
+                        <option value="send text">Send Text Message</option>
+                        <option value="send email">Send Email</option>
+                        <option value="zoom meeting">Zoom Meeting</option>
+                        <option value="phone call">Phone Call</option>
+                        <option value="face to face">Face to Face Meeting</option>
+                        <option value="collaboration">Collaboration</option>
+                        <option value="website analysis">Website Analysis</option>
+                        <option value="website demo">Website Demo</option>
+                        <option value="call backs">Call Backs</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div id="otherTaskContainer" class="form-group" style="display:none;">
+                    <label for="otherTask">Other Task Description</label>
+                    <textarea id="otherTask" maxlength="300"></textarea>
+                </div>
+                <div class="form-group"><label for="taskDescription">Task Description</label><textarea id="taskDescription"></textarea></div>
+                <div class="form-group"><label for="taskDueDate">Due Date</label><input type="date" id="taskDueDate"></div>
+                <div class="action-buttons">
+                    <button class="action-button btn-complete" id="completeTaskBtn">Complete</button>
+                    <button class="action-button btn-delete" id="deleteTaskBtn">Delete</button>
+                    <button class="action-button btn-cancel" id="cancelTaskBtn">Cancel</button>
+                    <button class="action-button btn-save" id="saveTaskBtn">Save</button>
+                </div>
+            </div>
+            <div class="leads-container">
+                <h2 class="text-2xl font-bold mb-4">Leads Management</h2>
+                <div class="status-filter">
+                    <label for="leadFilter">Filter Leads: </label>
+                    <select id="leadFilter">
+                        <option value="all">All Leads</option>
+                        <option value="new">New Leads</option>
+                        <option value="hot">Hot Leads</option>
+                        <option value="interested">Interested</option>
+                        <option value="demo">Free Demo Scheduled</option>
+                        <option value="client">Client</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="referral">Referral Leads</option>
+                        <option value="website_analysis">Website Analysis</option>
+                        <option value="website_demo">Website Demo</option>
+                        <option value="call_backs">Call Backs</option>
+                        <option value="send_email">Send Email</option>
+                        <option value="free_demo">Free Demo</option>
+                        <option value="website">Website</option>
+                        <option value="seo">SEO</option>
+                    </select>
+                    <button id="refreshLeadsBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 ml-2"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="filter-info"><strong>Note:</strong> Use the dropdown to FILTER leads. To MOVE a lead to a different category, click on the lead and use the "Move" button.</div>
+                <div id="leadsList" class="leads-list"></div>
+            </div>
+        </div>
+
+        <!-- Telemarketing -->
+        <div id="telemarketingSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">Telemarketing Form</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Form Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openTelemarketingForm" class="roi-button" style="background-color:#F59E0B;"><i class="fas fa-external-link-alt"></i> Open Telemarketing Form</button>
+            <a href="https://taniad2169.github.io/Telemarketing/" target="_blank" class="roi-link">View Telemarketing Form →</a>
+        </div>
+
+        <!-- Analysis Result -->
+        <div id="analysisResultSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">Website Analysis Result</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Analysis Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openAnalysisResult" class="roi-button" style="background-color:#8B5CF6;"><i class="fas fa-external-link-alt"></i> Open Analysis Result</button>
+            <a href="https://taniad2169.github.io/WS-Analysis-Result/" target="_blank" class="roi-link">View Analysis Result →</a>
+        </div>
+
+        <!-- Credit Repair -->
+        <div id="creditRepairSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">Credit Repair CRM</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">CRM Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openCreditRepairCRM" class="roi-button" style="background-color:#EC4899;"><i class="fas fa-external-link-alt"></i> Open Credit Repair CRM</button>
+            <a href="https://taniad2169.github.io/Domingue_Crp/" target="_blank" class="roi-link">View Credit Repair CRM →</a>
+        </div>
+
+        <!-- Web Analysis -->
+        <div id="webAnalysisSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">Web Analysis</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Tool Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openWebAnalysis" class="roi-button" style="background-color:#06B6D4;"><i class="fas fa-external-link-alt"></i> Open Web Analysis</button>
+            <a href="https://taniad2169.github.io/Test_WS/" target="_blank" class="roi-link">View Web Analysis →</a>
+        </div>
+
+        <!-- Analysis Insight -->
+        <div id="analysisInsightSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">WebSwan Analysis Insight</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Tool Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openAnalysisInsight" class="roi-button" style="background-color:#8B4513;"><i class="fas fa-external-link-alt"></i> Open WebSwan Analysis Insight</button>
+            <a href="https://taniad2169.github.io/WebSwan-Analysis-Overview/" target="_blank" class="roi-link">View WebSwan Analysis Insight →</a>
+        </div>
+
+        <!-- WebSwan Spin -->
+        <div id="webswanSpinSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">WebSwan Spin</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Tool Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openWebSwanSpin" class="roi-button" style="background:linear-gradient(135deg,#08c6d4 0%,#daeced 100%);"><i class="fas fa-external-link-alt"></i> Open WebSwan Spin</button>
+            <a href="https://taniad2169.github.io/WebSwan_spin/" target="_blank" class="roi-link">View WebSwan Spin →</a>
+        </div>
+
+        <!-- WS Insight -->
+        <div id="wsInsightSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">WS Insight</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Tool Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openWSInsight" class="roi-button" style="background-color:#7C3AED;"><i class="fas fa-external-link-alt"></i> Open WS Insight</button>
+            <a href="https://taniad2169.github.io/WS-Insight/" target="_blank" class="roi-link">View WS Insight →</a>
+        </div>
+
+        <!-- WebSwan Intake -->
+        <div id="webswanIntakeSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">WebSwan Intake</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Form Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openWebSwanIntake" class="roi-button" style="background-color:#059669;"><i class="fas fa-external-link-alt"></i> Open WebSwan Intake</button>
+            <a href="https://taniad2169.github.io/WebSwan-Intake/" target="_blank" class="roi-link">View WebSwan Intake →</a>
+        </div>
+
+        <!-- Cookie & Accessibility -->
+        <div id="cookieAccessibilitySection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">Cookie & Accessibility</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Tool Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openCookieAccessibility" class="roi-button" style="background-color:#DC2626;"><i class="fas fa-external-link-alt"></i> Open Cookie & Accessibility</button>
+            <a href="https://access-coo-ws.vercel.app/" target="_blank" class="roi-link">View Cookie & Accessibility →</a>
+        </div>
+
+        <!-- Brand Hub -->
+        <div id="brandHubSection" class="roi-container scroll-target">
+            <h2 class="text-2xl font-bold mb-6">Interactive Brand Hub</h2>
+            <div class="roi-results"><div class="roi-result-item"><span class="roi-result-label">Hub Status:</span><span class="roi-result-value">Ready to Use</span></div></div>
+            <button id="openBrandHub" class="roi-button" style="background-color:#FF6B6B;"><i class="fas fa-external-link-alt"></i> Open Interactive Brand Hub</button>
+            <a href="https://taniad2169.github.io/WebSwan-Brand-Hub/" target="_blank" class="roi-link">View Interactive Brand Hub →</a>
         </div>
     </div>
+</div>
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-      import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="loginModalClose">&times;</span>
+        <h2 class="text-xl font-bold mb-4">Back Office Login</h2>
+        <input type="password" class="modal-input" placeholder="Password" id="password">
+        <button class="modal-button" id="modalLoginBtn">Login</button>
+    </div>
+</div>
 
-     
+<!-- Submission Modal -->
+<div id="submissionModal">
+    <div class="modal-content">
+        <p id="submissionMessage">Application submitted successfully! ✅</p>
+        <p id="submissionCategory" style="color:#059669; font-weight:bold; margin-top:8px;"></p>
+        <button class="ok-button" id="submissionOkBtn">OK</button>
+    </div>
+</div>
 
-     const firebaseConfig = {
-    apiKey: "__API_KEY__", // This will be replaced by GitHub Actions
-    authDomain: "express-crm.firebaseapp.com",
-    projectId: "express-crm",
-    storageBucket: "express-crm.firebasestorage.app",
-    messagingSenderId: "379523906404",
-    appId: "1:379523906404:web:d1eb5557c6b35f3c8d871",
-    measurementId: "G-VVV55R1YD9"
-};
+<div id="celebration"><div id="celebrationEmojis"></div></div>
+<audio id="bellSound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" preload="auto"></audio>
+<div class="overlay" id="overlay"></div>
 
-      // Your CRM JavaScript
-      // --- Data Definitions ---
-      const LEAD_STATUSES = [
-          "Interested", "Hot Leads", "Prospect", "Clients", "Closed Deal", "Canceled Deal", "Referral"
-      ];
-      const ADMIN_PASSWORD = "admin333";
+<!-- Lead Modal -->
+<div class="modal" id="leadModal">
+    <div class="modal-content">
+        <span class="close" id="leadModalClose">&times;</span>
+        <h2>Lead Details</h2>
+        <div class="modal-body">
+            <div id="leadDetailsView">
+                <div class="lead-detail-group"><div class="lead-detail-label">Name</div><div id="leadNameDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Company</div><div id="leadCompanyDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Email</div><div id="leadEmailDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Phone</div><div id="leadPhoneDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">City</div><div id="leadCityDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">State</div><div id="leadStateDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Website</div><div id="leadWebsiteDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Has Website</div><div id="leadHasWebsiteDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Industry</div><div id="leadIndustryDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Other Industry</div><div id="leadOtherIndustryDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">How Long in Business</div><div id="leadHowLongDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Type of Business</div><div id="leadBusinessTypeDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Service Interested In</div><div id="leadServiceDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Current Status / Category</div><div id="leadStatusDisplay" class="lead-detail-value" style="font-weight:bold; color:#4F46E5;"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Best Time to Contact</div><div id="leadBestTimeDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Best Way to Contact</div><div id="leadContactWayDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">Additional Notes</div><div id="leadNotesDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">📞 Time of Call</div><div id="leadCallTimeDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">🌎 Time Zone</div><div id="leadTimezoneDisplay" class="lead-detail-value"></div></div>
+                <div class="lead-detail-group"><div class="lead-detail-label">📅 Date of Call</div><div id="leadCallDateDisplay" class="lead-detail-value"></div></div>
+            </div>
+            <div class="action-buttons-lead">
+                <button class="action-button-lead btn-edit-lead" id="editLeadBtn">✏️ Edit</button>
+                <button class="action-button-lead btn-delete-lead" id="deleteLeadBtn">🗑️ Delete</button>
+                <button class="action-button-lead btn-move-lead" id="moveLeadBtn">📁 Move to Category</button>
+            </div>
+            <div class="toolbar flex items-center mt-4" style="gap:5px;">
+                <button class="p-2 border rounded" onclick="document.execCommand('bold')"><b>B</b></button>
+                <button class="p-2 border rounded" onclick="document.execCommand('backColor',false,'yellow')">Highlight</button>
+                <button class="p-2 border rounded" onclick="document.execCommand('removeFormat')">Clear</button>
+                <input type="color" id="colorPicker" onchange="document.execCommand('foreColor',false,this.value)" title="Font Color">
+            </div>
+            <div id="commentBox" class="comment-box" contenteditable="true" placeholder="Add notes here (max 350 words)..."></div>
+        </div>
+    </div>
+</div>
 
-      // --- DOM Elements ---
-      const adminModal = document.getElementById("admin-modal");
-      const adminLoginBtn = document.getElementById("admin-login-btn");
-      const exitAdminBtn = document.getElementById("exit-admin-btn");
-      const backOffice = document.getElementById("back-office");
-      const applicationIntake = document.getElementById("application-intake");
-      const leadForm = document.getElementById("lead-form");
-      const taskForm = document.getElementById("task-form");
-      const leadList = document.getElementById("lead-list");
-      const taskList = document.getElementById("task-list");
-      const footerCountCurrent = document.getElementById("footer-count-current");
-      const dailyTargetSelect = document.getElementById("daily-target-select");
-      const viewLeadModal = document.getElementById("view-lead-modal");
-      const viewLeadDetails = document.getElementById("view-lead-details");
-      
-      const actionModal = document.getElementById("action-modal");
-      const actionModalTitle = document.getElementById("action-modal-title");
-      const actionForm = document.getElementById("action-form");
-      const actionItemId = document.getElementById("action-item-id");
-      const actionItemType = document.getElementById("action-item-type");
-      const actionItemAction = document.getElementById("action-item-action");
-      const actionFieldsContainer = document.getElementById("action-fields-container");
-      const actionCommentLabel = document.getElementById("action-comment-label");
-      const actionComment = document.getElementById("action-comment");
-      const actionSubmitBtn = document.getElementById("action-submit-btn");
-      const deleteConfirmationButtons = document.getElementById("delete-confirmation-buttons");
-      const confirmDeleteYes = document.getElementById("confirm-delete-yes");
-      const confirmDeleteNo = document.getElementById("confirm-delete-no");
+<!-- Move Lead Modal -->
+<div class="move-modal" id="moveModal">
+    <span class="close" id="moveModalClose">&times;</span>
+    <h3>📁 Move Lead To Category:</h3>
+    <ul>
+        <li><button onclick="executeMoveLead('new')">🆕 New Leads</button></li>
+        <li><button onclick="executeMoveLead('hot')">🔥 Hot Leads</button></li>
+        <li><button onclick="executeMoveLead('interested')">⭐ Interested</button></li>
+        <li><button onclick="executeMoveLead('demo')">📅 Free Demo Scheduled</button></li>
+        <li><button onclick="executeMoveLead('client')">✅ Client</button></li>
+        <li><button onclick="executeMoveLead('cancelled')">❌ Cancelled</button></li>
+        <li><button onclick="executeMoveLead('referral')">👥 Referral Leads</button></li>
+        <li><button onclick="executeMoveLead('website_analysis')">🔍 Website Analysis</button></li>
+        <li><button onclick="executeMoveLead('website_demo')">💻 Website Demo</button></li>
+        <li><button onclick="executeMoveLead('call_backs')">📞 Call Backs</button></li>
+        <li><button onclick="executeMoveLead('send_email')">📧 Send Email</button></li>
+        <li><button onclick="executeMoveLead('free_demo')">🎁 Free Demo</button></li>
+        <li><button onclick="executeMoveLead('website')">🌐 Website</button></li>
+        <li><button onclick="executeMoveLead('seo')">📈 SEO</button></li>
+    </ul>
+</div>
 
-      const celebrationModal = document.getElementById("celebration-modal");
-      const bouncingEmoji = document.querySelector('.bouncing-emoji');
-      const dancingDollar = document.querySelector('.dancing-dollar');
-      const hasWebsiteSelect = document.getElementById('has-website');
-      const websiteUrlContainer = document.getElementById('website-url-container');
-      const websiteUrlInput = document.getElementById('website-url');
-      const countdownContainer = document.getElementById("countdown-container");
-      const countdownNumber = document.getElementById("countdown-number");
-      const countdownMessage = document.getElementById("countdown-message");
-      const confettiContainer = document.getElementById("confetti-container");
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
-      const taskActionModal = document.getElementById("task-action-modal");
-      const taskActionModalTitle = document.getElementById("task-action-modal-title");
-      const taskActionForm = document.getElementById("task-action-form");
-      const taskActionItemId = document.getElementById("task-action-item-id");
-      const taskActionItemAction = document.getElementById("task-action-item-action");
-      const taskActionFieldsContainer = document.getElementById("task-action-fields-container");
-      const taskActionCommentLabel = document.getElementById("task-action-comment-label");
-      const taskActionComment = document.getElementById("task-action-comment");
-      const taskActionSubmitBtn = document.getElementById("task-action-submit-btn");
-      const taskDeleteConfirmationButtons = document.getElementById("task-delete-confirmation-buttons");
-      const taskConfirmDeleteYes = document.getElementById("task-confirm-delete-yes");
-      const taskConfirmDeleteNo = document.getElementById("task-confirm-delete-no");
+<script>
+    // ============================================================
+    // GLOBAL STATE - single source of truth
+    // ============================================================
+    var AppState = {
+        applicationsRemaining: 100,
+        targetCount: 0,
+        currentLeadId: null,
+        currentLeadData: null,
+        currentTaskId: null,
+        isEditingTask: false,
+        allLeads: [],
+        isLoggedIn: false
+    };
 
-      // Target button elements
-      const targetBtn = document.getElementById("target-btn");
-      const targetReset = document.getElementById("target-reset");
-      const targetValue = document.getElementById("target-value");
+    // ============================================================
+    // STATUS LABEL MAP
+    // ============================================================
+    var STATUS_LABELS = {
+        'all': 'All Leads',
+        'new': 'New Leads',
+        'hot': 'Hot Leads',
+        'interested': 'Interested',
+        'demo': 'Free Demo Scheduled',
+        'client': 'Client',
+        'cancelled': 'Cancelled',
+        'referral': 'Referral Leads',
+        'website_analysis': 'Website Analysis',
+        'website_demo': 'Website Demo',
+        'call_backs': 'Call Backs',
+        'send_email': 'Send Email',
+        'free_demo': 'Free Demo',
+        'website': 'Website',
+        'reputation': 'Reputation Management',
+        'ad_campaign': 'Ad Campaign',
+        'video_social': 'Video/Social Media',
+        'seo': 'SEO',
+        'calendar': 'Calendar',
+        'form': 'Form',
+        'lead_form': 'Lead Generating Form'
+    };
 
-      let allLeads = [];
-      let allTasks = [];
-      let currentFilter = 'all';
+    // ============================================================
+    // SERVICE → STATUS MAPPING (auto-assign on form submit)
+    // ============================================================
+    var SERVICE_TO_STATUS = {
+        'free_demo': 'demo',
+        'website': 'website',
+        'reputation': 'new',
+        'ad_campaign': 'new',
+        'video_social': 'new',
+        'seo': 'seo',
+        'calendar': 'new',
+        'form': 'new',
+        'lead_form': 'new',
+        '': 'new'
+    };
 
-      // Target button functionality
-      let currentTargetValue = 0;
-      let nextIncrement = 1;
+    function getStatusFromService(serviceValue) {
+        return SERVICE_TO_STATUS[serviceValue] || 'new';
+    }
 
-      targetBtn.addEventListener('click', () => {
-          if (currentTargetValue + nextIncrement <= 200) {
-              currentTargetValue += nextIncrement;
-              nextIncrement++;
-              targetValue.textContent = currentTargetValue;
-          } else {
-              alert("Maximum value of 200 reached!");
-          }
-      });
+    // Phone formatting
+    function formatPhoneNumber(value) {
+        var digits = value.replace(/\D/g, '');
+        if (digits.length === 10) return '(' + digits.slice(0,3) + ')' + digits.slice(3,6) + '-' + digits.slice(6);
+        return value;
+    }
 
-      targetReset.addEventListener('click', () => {
-          currentTargetValue = 0;
-          nextIncrement = 1;
-          targetValue.textContent = currentTargetValue;
-      });
+    // ============================================================
+    // INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
 
-      // --- Data Management (Firestore) ---
-      const leadsCollection = collection(db, "leads");
-      const tasksCollection = collection(db, "tasks");
-      
-      // Use onSnapshot for real-time updates
-      onSnapshot(leadsCollection, (snapshot) => {
-          allLeads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderLeads(currentFilter);
-          updateCountdown();
-      });
+        // --- Prefill Lead/Application form from URL parameters ---
+        // Lets other WebSwan tools (like the Daily Task app) hand off a
+        // lead directly into THIS form only - nothing else in the CRM
+        // (not Firestore, not the back office) is touched until Tania
+        // actually reviews it and clicks Submit herself.
+        (function prefillLeadFormFromUrl() {
+            var params = new URLSearchParams(window.location.search);
+            if (![...params.keys()].length) return;
 
-      onSnapshot(tasksCollection, (snapshot) => {
-          allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          renderTasks();
-      });
+            var nameEl = document.getElementById('name');
+            var phoneEl = document.getElementById('phone');
+            var emailEl = document.getElementById('email');
+            var websiteEl = document.getElementById('website');
+            var notesEl = document.getElementById('notes');
 
-      // --- Countdown Logic ---
-      function updateCountdown() {
-          const leadsCount = allLeads.length;
-          const dailyTarget = parseInt(localStorage.getItem('dailyLeadTarget') || 100);
-          const remaining = Math.max(dailyTarget - leadsCount, 0);
-          footerCountCurrent.textContent = remaining;
-      }
-      
-      function populateDailyTargetSelect() {
-          for (let i = 5; i <= 100; i += 5) {
-              const option = document.createElement('option');
-              option.value = i;
-              option.textContent = i;
-              dailyTargetSelect.appendChild(option);
-          }
-          const savedTarget = localStorage.getItem('dailyLeadTarget') || 100;
-          dailyTargetSelect.value = savedTarget;
-      }
+            if (params.get('name') && nameEl) nameEl.value = params.get('name');
+            if (params.get('phone') && phoneEl) phoneEl.value = formatPhoneNumber(params.get('phone'));
+            if (params.get('email') && emailEl) emailEl.value = params.get('email');
+            if (params.get('url') && websiteEl) websiteEl.value = params.get('url');
+            if (params.get('comment') && notesEl) notesEl.value = params.get('comment');
 
-      // --- UI Rendering Functions ---
-      function renderLeads(filter = 'all') {
-          const leads = filter === 'all' ? allLeads : allLeads.filter(l => l.status === filter);
-          leadList.innerHTML = "";
-          if (leads.length === 0) {
-              leadList.innerHTML = "<p>No leads in this category.</p>";
-              return;
-          }
-          leads.forEach(lead => {
-              const card = document.createElement("div");
-              card.className = "lead-card";
-              card.innerHTML = `
-                  <b>${lead.fullName || 'N/A'}</b> (${lead.status || 'N/A'})<br>
-                  <span>${lead.businessName || 'N/A'} - ${lead.city || 'N/A'}, ${lead.state || 'N/A'}</span>
-                  <div class="btn-group">
-                      <select onchange="handleLeadAction('${lead.id}', this.value)">
-                          <option value="">Actions</option>
-                          <option value="view">View</option>
-                          <option value="move">Move Lead</option>
-                          <option value="edit">Edit Lead</option>
-                          <option value="delete">Delete Lead</option>
-                      </select>
-                  </div>
-              `;
-              leadList.appendChild(card);
-          });
-      }
+            if (nameEl && nameEl.value) {
+                var leadFormSection = document.getElementById('leadForm');
+                if (leadFormSection) leadFormSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        })();
 
-      function renderTasks() {
-          taskList.innerHTML = "";
-          if (allTasks.length === 0) {
-              taskList.innerHTML = "<p>No tasks saved yet.</p>";
-              return;
-          }
-          allTasks.forEach(task => {
-              const card = document.createElement("div");
-              card.className = "task-card";
-              card.innerHTML = `
-                  <b>${task.type || 'N/A'}</b> - ${task.date || 'N/A'} at ${task.time || 'N/A'}<br>
-                  <span>${task.comment || 'No comment'}</span>
-                  <div class="btn-group">
-                      <select onchange="handleTaskAction('${task.id}', this.value)">
-                          <option value="">Actions</option>
-                          <option value="complete">Complete Task</option>
-                          <option value="edit">Edit Task</option>
-                          <option value="delete">Delete Task</option>
-                      </select>
-                  </div>
-              `;
-              taskList.appendChild(card);
-          });
-      }
+        // --- Target widget ---
+        var storedCount = parseInt(localStorage.getItem('targetCount') || '0');
+        AppState.targetCount = storedCount;
+        document.getElementById('targetCount').textContent = storedCount;
 
-      // Bell sound logic using Web Audio API for universal compatibility
-      function playBell() {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const oscillator = ctx.createOscillator();
-          const gainNode = ctx.createGain();
+        document.getElementById('targetBtn').addEventListener('click', function() {
+            AppState.targetCount++;
+            document.getElementById('targetCount').textContent = AppState.targetCount;
+            localStorage.setItem('targetCount', AppState.targetCount);
+        });
+        document.getElementById('targetResetBtn').addEventListener('click', function() {
+            AppState.targetCount = 0;
+            document.getElementById('targetCount').textContent = 0;
+            localStorage.setItem('targetCount', 0);
+        });
 
-          oscillator.type = "sine";
-          oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-          gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+        // --- Phone formatting ---
+        var phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('blur', function() { this.value = formatPhoneNumber(this.value); });
+        }
 
-          oscillator.connect(gainNode);
-          gainNode.connect(ctx.destination);
+        // --- Countdown selector ---
+        var countSelector = document.getElementById('countdownSelect');
+        countSelector.innerHTML = '<option value="">Select number</option>';
+        for (var i = 1; i <= 100; i++) {
+            var opt = document.createElement('option');
+            opt.value = i; opt.textContent = i;
+            countSelector.appendChild(opt);
+        }
+        countSelector.value = 100;
+        countSelector.addEventListener('change', function() {
+            AppState.applicationsRemaining = parseInt(this.value) || 100;
+            document.getElementById('countdown').textContent = AppState.applicationsRemaining;
+            document.getElementById('countdownValue').textContent = AppState.applicationsRemaining;
+        });
 
-          oscillator.start();
-          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
-          oscillator.stop(ctx.currentTime + 3);
-      }
-      
-      function triggerConfetti() {
-          const colors = ['#FFD700', '#001f3f', '#d9534f', '#5cb85c', '#6c5ce7'];
-          for (let i = 0; i < 50; i++) {
-              const confetti = document.createElement('div');
-              confetti.classList.add('confetti');
-              confetti.style.left = `${Math.random() * 100}%`;
-              confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-              confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
-              confettiContainer.appendChild(confetti);
-          }
-          setTimeout(() => {
-              confettiContainer.innerHTML = '';
-          }, 5000);
-      }
+        // --- Login modal ---
+        document.getElementById('backOfficeLock').addEventListener('click', function() {
+            document.getElementById('loginModal').style.display = 'block';
+            document.body.classList.add('modal-open');
+            setTimeout(function() { document.getElementById('password').focus(); }, 100);
+        });
+        document.getElementById('toggleViewBtn').addEventListener('click', function() {
+            document.getElementById('loginModal').style.display = 'block';
+            document.body.classList.add('modal-open');
+        });
+        document.getElementById('loginModalClose').addEventListener('click', closeLoginModal);
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('modalLoginBtn').click();
+        });
+        document.getElementById('modalLoginBtn').addEventListener('click', function() {
+            var pw = document.getElementById('password').value;
+            if (pw === 'colbertp') {
+                document.getElementById('frontOffice').style.display = 'none';
+                document.getElementById('backOffice').style.display = 'block';
+                closeLoginModal();
+                AppState.isLoggedIn = true;
+                if (window.firebaseLoadLeads) window.firebaseLoadLeads();
+                if (window.firebaseLoadTasks) window.firebaseLoadTasks();
+            } else {
+                alert('Incorrect password. Please try again.');
+            }
+        });
 
-      // New celebration logic with countdown
-      function startCountdownCelebration() {
-          const dailyLeadsLeft = parseInt(footerCountCurrent.textContent, 10);
-          
-          celebrationModal.classList.add('visible');
-          bouncingEmoji.classList.remove('hidden');
-          dancingDollar.classList.remove('hidden');
-          countdownContainer.classList.remove('hidden');
-          triggerConfetti();
+        // --- Back to front ---
+        document.getElementById('backToFrontBtn').addEventListener('click', function() {
+            document.getElementById('backOffice').style.display = 'none';
+            document.getElementById('frontOffice').style.display = 'block';
+            AppState.isLoggedIn = false;
+        });
 
-          const countdownMessages = {
-              3: "🎉 You're on fire Woop Woop!",
-              2: "🔥 Let's Go! Keep up the momentum!",
-          };
-          
-          let count = dailyLeadsLeft >= 3 ? 3 : dailyLeadsLeft;
+        // --- Google sheet ---
+        document.getElementById('openSheetBtn').addEventListener('click', function() {
+            window.open('https://docs.google.com/spreadsheets/d/1mXmwoF2qeJVoCsvK6GjsgV6xsc2x_RhGMs7vLAm1U4I/edit?gid=0#gid=0', '_blank');
+        });
 
-          const countdownInterval = setInterval(() => {
-              if (count > 0) {
-                  countdownNumber.textContent = count;
+        // --- Submission OK button ---
+        document.getElementById('submissionOkBtn').addEventListener('click', function() {
+            document.getElementById('submissionModal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+            if (AppState.applicationsRemaining > 0) AppState.applicationsRemaining--;
+            document.getElementById('countdown').textContent = AppState.applicationsRemaining;
+            document.getElementById('countdownValue').textContent = AppState.applicationsRemaining;
+            triggerCelebration(AppState.applicationsRemaining);
+        });
 
-                  if (count === 1 && dailyLeadsLeft === 1) {
-                      countdownMessage.textContent = "Almost there!";
-                  } else {
-                      countdownMessage.textContent = countdownMessages[count] || "";
-                  }
+        // --- ROI Calculator ---
+        document.getElementById('calculateROI').addEventListener('click', calculateROI);
 
-                  playBell();
-                  count--;
-              } else if (count === 0) {
-                  countdownNumber.textContent = "";
-                  countdownMessage.textContent = "You did it!";
-                  playBell();
-                  clearInterval(countdownInterval);
+        // --- Lead modal close ---
+        document.getElementById('leadModalClose').addEventListener('click', closeAllModals);
+        document.getElementById('moveModalClose').addEventListener('click', closeAllModals);
+        document.getElementById('overlay').addEventListener('click', closeAllModals);
 
-                  setTimeout(() => {
-                      celebrationModal.classList.remove('visible');
-                      bouncingEmoji.classList.add('hidden');
-                      dancingDollar.classList.add('hidden');
-                      countdownContainer.classList.add('hidden');
-                  }, 2000);
-              }
-          }, 3000);
-      }
+        // --- Lead action buttons ---
+        document.getElementById('editLeadBtn').addEventListener('click', editLead);
+        document.getElementById('deleteLeadBtn').addEventListener('click', deleteLead);
+        document.getElementById('moveLeadBtn').addEventListener('click', showMoveModal);
 
-      // --- Event Handlers ---
-      document.addEventListener("DOMContentLoaded", () => {
-          populateDailyTargetSelect();
-      });
+        // --- Task buttons ---
+        document.getElementById('addNewTaskBtn').addEventListener('click', function() {
+            AppState.currentTaskId = null;
+            AppState.isEditingTask = false;
+            document.getElementById('taskType').value = 'call client';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDueDate').value = '';
+            document.getElementById('otherTask').value = '';
+            document.getElementById('otherTaskContainer').style.display = 'none';
+            document.getElementById('taskDetail').style.display = 'block';
+        });
+        document.getElementById('cancelTaskBtn').addEventListener('click', function() {
+            document.getElementById('taskDetail').style.display = 'none';
+        });
+        document.getElementById('saveTaskBtn').addEventListener('click', saveTask);
+        document.getElementById('completeTaskBtn').addEventListener('click', completeTask);
+        document.getElementById('deleteTaskBtn').addEventListener('click', deleteTask);
+        document.getElementById('refreshTasksBtn').addEventListener('click', function() { if (window.firebaseLoadTasks) window.firebaseLoadTasks(); });
+        document.getElementById('refreshLeadsBtn').addEventListener('click', function() { if (window.firebaseLoadLeads) window.firebaseLoadLeads(); });
 
-      dailyTargetSelect.addEventListener("change", (e) => {
-          localStorage.setItem('dailyLeadTarget', e.target.value);
-          updateCountdown();
-      });
+        document.getElementById('taskType').addEventListener('change', function() {
+            document.getElementById('otherTaskContainer').style.display = this.value === 'other' ? 'block' : 'none';
+        });
 
-      hasWebsiteSelect.addEventListener('change', (e) => {
-          if (e.target.value === 'Yes') {
-              websiteUrlContainer.classList.remove('hidden');
-          } else {
-              websiteUrlContainer.classList.add('hidden');
-              websiteUrlInput.value = '';
-          }
-      });
+        // --- Filter changes ---
+        document.getElementById('leadFilter').addEventListener('change', function() { if (window.firebaseLoadLeads) window.firebaseLoadLeads(); });
+        document.getElementById('taskFilter').addEventListener('change', function() { if (window.firebaseLoadTasks) window.firebaseLoadTasks(); });
 
-      // Admin Modal
-      adminLoginBtn.addEventListener("click", () => {
-          adminModal.classList.add("visible");
-      });
-      document.getElementById("admin-modal-close").addEventListener("click", () => {
-          adminModal.classList.remove("visible");
-      });
-      document.getElementById("admin-login-form").addEventListener("submit", (e) => {
-          e.preventDefault();
-          const password = document.getElementById("admin-password").value;
-          if (password === ADMIN_PASSWORD) {
-              adminModal.classList.remove("visible");
-              applicationIntake.classList.add("hidden");
-              backOffice.classList.remove("hidden");
-              adminLoginBtn.classList.add("hidden");
-              exitAdminBtn.classList.remove("hidden");
-              renderLeads(currentFilter);
-              renderTasks();
-          } else {
-              document.getElementById("admin-error").textContent = "Incorrect password.";
-          }
-      });
-      exitAdminBtn.addEventListener("click", () => {
-          backOffice.classList.add("hidden");
-          applicationIntake.classList.remove("hidden");
-          adminLoginBtn.classList.remove("hidden");
-          exitAdminBtn.classList.add("hidden");
-      });
-      document.getElementById("view-modal-close").add.addEventListener("click", () => {
-          viewLeadModal.classList.remove("visible");
-      });
-      document.getElementById("action-modal-close").addEventListener("click", () => {
-          actionModal.classList.remove("visible");
-          // Hide comment and delete buttons when closing modal
-          actionCommentLabel.classList.add('hidden');
-          actionComment.classList.add('hidden');
-          actionSubmitBtn.classList.remove('hidden'); // Show save btn by default
-          deleteConfirmationButtons.classList.add('hidden');
-      });
-      document.getElementById("task-action-modal-close").addEventListener("click", () => {
-          taskActionModal.classList.remove("visible");
-          // Hide comment and delete buttons when closing modal
-          taskActionCommentLabel.classList.add('hidden');
-          taskActionComment.classList.add('hidden');
-          taskActionSubmitBtn.classList.remove('hidden'); // Show save btn by default
-          taskDeleteConfirmationButtons.classList.add('hidden');
-      });
+        // --- Search ---
+        document.getElementById('searchLeadInput').addEventListener('input', function() {
+            var term = this.value.toLowerCase().trim();
+            var results = document.getElementById('searchResults');
+            if (!term) { results.innerHTML = ''; return; }
+            var matched = AppState.allLeads.filter(function(l) {
+                return (l.industry || '').toLowerCase().includes(term) ||
+                       (l.otherIndustry || '').toLowerCase().includes(term) ||
+                       (l.name || '').toLowerCase().includes(term) ||
+                       (l.company || '').toLowerCase().includes(term);
+            });
+            if (!matched.length) { results.innerHTML = '<div class="no-results">No leads found for "' + term + '"</div>'; return; }
+            results.innerHTML = matched.map(function(l) {
+                return '<div class="search-result-item" onclick="openLeadById(\'' + l.id + '\')">' +
+                    '<div class="search-result-name">' + (l.name||'') + '</div>' +
+                    '<div class="search-result-details">' + (l.company||'') + ' | ' + (l.industry||'') + ' | ' + (STATUS_LABELS[l.status]||l.status||'') + '</div>' +
+                    '</div>';
+            }).join('');
+        });
 
+        // --- Section toggles ---
+        var toggleMap = {
+            'calendarToggleButton': function() { window.open('https://taniad2169.github.io/Webswan-Booking-FREE-Website-Demo/','_blank'); },
+            'roiToggleButton': function() { showSection('roiContainer'); },
+            'crmToggleButton': function() { showSection('crmDashboard'); if (window.firebaseLoadLeads) window.firebaseLoadLeads(); if (window.firebaseLoadTasks) window.firebaseLoadTasks(); },
+            'telemarketingToggleButton': function() { showSection('telemarketingSection'); },
+            'analysisToggleButton': function() { showSection('analysisResultSection'); },
+            'creditRepairToggleButton': function() { showSection('creditRepairSection'); },
+            'webAnalysisToggleButton': function() { showSection('webAnalysisSection'); },
+            'analysisInsightToggleButton': function() { showSection('analysisInsightSection'); },
+            'webswanSpinToggleButton': function() { showSection('webswanSpinSection'); },
+            'wsInsightToggleButton': function() { showSection('wsInsightSection'); },
+            'webswanIntakeToggleButton': function() { showSection('webswanIntakeSection'); },
+            'cookieAccessibilityToggleButton': function() { showSection('cookieAccessibilitySection'); },
+            'brandHubToggleButton': function() { showSection('brandHubSection'); }
+        };
+        Object.keys(toggleMap).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('click', toggleMap[id]);
+        });
 
-      // Lead Form Submission
-      leadForm.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const formObject = Object.fromEntries(formData);
+        // --- External buttons ---
+        var extMap = {
+            'openTelemarketingForm': 'https://taniad2169.github.io/Telemarketing/',
+            'openAnalysisResult': 'https://taniad2169.github.io/WS-Analysis-Result/',
+            'openCreditRepairCRM': 'https://taniad2169.github.io/Domingue_Crp/',
+            'openWebAnalysis': 'https://taniad2169.github.io/Test_WS/',
+            'openAnalysisInsight': 'https://taniad2169.github.io/WebSwan-Analysis-Overview/',
+            'openWebSwanSpin': 'https://taniad2169.github.io/WebSwan_spin/',
+            'openWSInsight': 'https://taniad2169.github.io/WS-Insight/',
+            'openWebSwanIntake': 'https://taniad2169.github.io/WebSwan-Intake/',
+            'openCookieAccessibility': 'https://access-coo-ws.vercel.app/',
+            'openBrandHub': 'https://taniad2169.github.io/WebSwan-Brand-Hub/'
+        };
+        Object.keys(extMap).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('click', function() { window.open(extMap[id], '_blank'); });
+        });
 
-          // Correctly map form data to the lead object
-          const newLead = {
-            fullName: formObject.fullName || '',
-            phone: formObject.phone || '',
-            email: formObject.email || '',
-            businessName: formObject.businessName || '',
-            city: formObject.city || '',
-            state: formObject.state || '',
-            service: formObject.service || '',
-            industry: formObject.industry || '',
-            bestTime: formObject.bestTime || '',
-            bestWay: formObject.bestWay || '',
-            hasWebsite: formObject.hasWebsite || '',
-            status: "Interested"
-          };
-          
-          // Add websiteUrl only if 'Yes' is selected
-          if (formObject.hasWebsite === 'Yes') {
-            newLead.websiteUrl = formObject.websiteUrl || '';
-          }
+        // Default show CRM
+        showSection('crmDashboard');
+    });
 
-          await addDoc(leadsCollection, newLead);
-          leadForm.reset();
-          websiteUrlContainer.classList.add('hidden');
-          websiteUrlInput.value = 'https://www.'; // Reset URL to default
-          startCountdownCelebration();
-      });
+    // ============================================================
+    // SECTION HELPERS
+    // ============================================================
+    function showSection(id) {
+        var sections = ['roiContainer','crmDashboard','telemarketingSection','analysisResultSection',
+            'creditRepairSection','webAnalysisSection','analysisInsightSection','webswanSpinSection',
+            'wsInsightSection','webswanIntakeSection','cookieAccessibilitySection','brandHubSection'];
+        sections.forEach(function(s) {
+            var el = document.getElementById(s);
+            if (el) el.style.display = 'none';
+        });
+        var target = document.getElementById(id);
+        if (target) {
+            target.style.display = 'block';
+            setTimeout(function() { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+        }
+    }
 
-      // Task Form Submission
-      taskForm.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const newTask = {
-              type: formData.get('type') || '',
-              date: formData.get('date') || '',
-              time: formData.get('time') || '',
-              comment: formData.get('comment') || ''
-          };
-          await addDoc(tasksCollection, newTask);
-          taskForm.reset();
-      });
+    // ============================================================
+    // MODAL HELPERS
+    // ============================================================
+    function closeLoginModal() {
+        document.getElementById('loginModal').style.display = 'none';
+        document.body.classList.remove('modal-open');
+        document.getElementById('password').value = '';
+    }
+    function closeAllModals() {
+        document.getElementById('leadModal').style.display = 'none';
+        document.getElementById('moveModal').style.display = 'none';
+        document.getElementById('overlay').classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
 
-      // Lead Actions Handler
-      window.handleLeadAction = function(id, action) {
-          const lead = allLeads.find(l => l.id === id);
-          if (action === "view") {
-              if (!lead) return;
-              viewLeadDetails.innerHTML = `
-                  <p><b>Name:</b> ${lead.fullName || 'N/A'}</p>
-                  <p><b>Phone:</b> ${lead.phone || 'N/A'}</p>
-                  <p><b>Email:</b> ${lead.email || 'N/A'}</p>
-                  <p><b>Business Name:</b> ${lead.businessName || 'N/A'}</p>
-                  <p><b>City:</b> ${lead.city || 'N/A'}</p>
-                  <p><b>State:</b> ${lead.state || 'N/A'}</p>
-                  <p><b>Service:</b> ${lead.service || 'N/A'}</p>
-                  <p><b>Industry:</b> ${lead.industry || 'N/A'}</p>
-                  <p><b>Best Time to Call:</b> ${lead.bestTime || 'N/A'}</p>
-                  <p><b>Best Way to Contact:</b> ${lead.bestWay || 'N/A'}</p>
-                  <p><b>Website:</b> ${lead.websiteUrl || 'N/A'}</p>
-                  <p><b>Status:</b> ${lead.status || 'N/A'}</p>
-                  ${lead.referralName ? `<p><b>Referred By:</b> ${lead.referralName}</p>` : ''}
-                  ${lead.referralComment ? `<p><b>Referral Comment:</b> ${lead.referralComment}</p>` : ''}
-              `;
-              viewLeadModal.classList.add("visible");
-              return;
-          }
+    // ============================================================
+    // OPEN LEAD
+    // ============================================================
+    function openLead(leadData) {
+        AppState.currentLeadData = leadData;
+        var fields = [
+            ['leadNameDisplay','name'],['leadCompanyDisplay','company'],['leadEmailDisplay','email'],
+            ['leadPhoneDisplay','phone'],['leadCityDisplay','city'],['leadStateDisplay','state'],
+            ['leadWebsiteDisplay','website'],['leadHasWebsiteDisplay','hasWebsite'],
+            ['leadIndustryDisplay','industry'],['leadOtherIndustryDisplay','otherIndustry'],
+            ['leadHowLongDisplay','howlonginbusiness'],['leadBusinessTypeDisplay','typeofbusiness'],
+            ['leadServiceDisplay','serviceinterestedin'],['leadBestTimeDisplay','besttime'],
+            ['leadContactWayDisplay','contactway'],['leadNotesDisplay','notes'],
+            ['leadCallTimeDisplay','calltime'],['leadTimezoneDisplay','calltimezone'],
+            ['leadCallDateDisplay','calldate']
+        ];
+        fields.forEach(function(f) {
+            var el = document.getElementById(f[0]);
+            if (el) el.textContent = leadData[f[1]] || '';
+        });
+        var statusEl = document.getElementById('leadStatusDisplay');
+        if (statusEl) statusEl.textContent = STATUS_LABELS[leadData.status] || leadData.status || 'All Leads';
+        document.getElementById('commentBox').innerHTML = leadData.comments || '';
+        document.getElementById('leadModal').style.display = 'block';
+        document.getElementById('overlay').classList.add('active');
+        document.body.classList.add('modal-open');
+    }
 
-          actionItemId.value = id;
-          actionItemType.value = 'lead';
-          actionItemAction.value = action;
-          actionModalTitle.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)} Lead`;
-          actionFieldsContainer.innerHTML = '';
-          
-          // Reset visibility for action modal elements
-          actionCommentLabel.classList.add('hidden');
-          actionComment.classList.add('hidden');
-          actionComment.value = ''; // Clear comment field
-          actionSubmitBtn.classList.remove('hidden');
-          deleteConfirmationButtons.classList.add('hidden');
+    function openLeadById(id) {
+        var lead = AppState.allLeads.find(function(l) { return l.id === id; });
+        if (lead) { AppState.currentLeadId = id; openLead(lead); }
+    }
 
-          if (action === 'move') {
-              const select = document.createElement('select');
-              select.name = 'newStatus';
-              select.required = true;
-              select.innerHTML = LEAD_STATUSES.map(s => `<option value="${s}" ${s === lead.status ? 'disabled' : ''}>${s}</option>`).join('');
-              const label = document.createElement('label');
-              label.textContent = 'Move to:';
-              actionFieldsContainer.appendChild(label);
-              actionFieldsContainer.appendChild(select);
-              
-              const referralFields = `
-                  <div id="referral-fields" class="hidden">
-                      <label>Referred By:</label>
-                      <input name="referralName" id="referralName" maxlength="50">
-                      <label>Referral Comment:</label>
-                      <textarea name="referralComment" id="referralComment" maxlength="300"></textarea>
-                  </div>
-              `;
-              actionFieldsContainer.insertAdjacentHTML('beforeend', referralFields);
-              
-              select.addEventListener('change', (e) => {
-                  const referralDiv = actionModal.querySelector('#referral-fields'); // Target within actionModal
-                  if (e.target.value === 'Referral') {
-                      referralDiv.classList.remove('hidden');
-                  } else {
-                      referralDiv.classList.add('hidden');
-                  }
-              });
+    function showMoveModal() {
+        document.getElementById('leadModal').style.display = 'none';
+        document.getElementById('moveModal').style.display = 'block';
+    }
 
-          } else if (action === 'edit') {
-              actionModalTitle.textContent = "Edit Lead";
-              actionFieldsContainer.innerHTML = `
-                  <label>Full Name:</label><input name="fullName" value="${lead.fullName || ''}" required>
-                  <label>Phone Number:</label><input name="phone" value="${lead.phone || ''}" required>
-                  <label>Email Address:</label><input name="email" type="email" value="${lead.email || ''}" required>
-                  <label>Business Name:</label><input name="businessName" value="${lead.businessName || ''}">
-                  <label>City:</label><input name="city" value="${lead.city || ''}">
-                  <label>State:</label>
-                  <select name="state" required>
-                      ${Array.from(document.querySelector('select[name="state"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.state ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
-                  </select>
-                  <label>Service:</label>
-                  <select name="service" required>
-                      ${Array.from(document.querySelector('select[name="service"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.service ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
-                  </select>
-                  <label>Industry:</label>
-                  <select name="industry" required>
-                      ${Array.from(document.querySelector('select[name="industry"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.industry ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
-                  </select>
-                  <label>Best Time to Call:</label>
-                  <select name="bestTime" required>
-                      ${Array.from(document.querySelector('select[name="bestTime"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestTime ? 'selected' : ''}>${opt.textContent</option>`).join('')}
-                  </select>
-                  <label>Best Way to Contact:</label>
-                  <select name="bestWay" required>
-                      ${Array.from(document.querySelector('select[name="bestWay"]').options).map(opt => `<option value="${opt.value}" ${opt.value === lead.bestWay ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
-                  </select>
-                  <label>Do you have a website?</label>
-                  <select name="hasWebsite" id="edit-has-website" required>
-                      <option value="Yes" ${lead.hasWebsite === 'Yes' ? 'selected' : ''}>Yes</option>
-                      <option value="No" ${lead.hasWebsite === 'No' ? 'selected' : ''}>No</option>
-                  </select>
-                  <div id="edit-website-url-container" class="${lead.hasWebsite === 'Yes' ? '' : 'hidden'}">
-                      <label>Website URL:</label>
-                      <input name="websiteUrl" value="${lead.websiteUrl || ''}">
-                  </div>
-                  <label>Referred By:</label><input name="referralName" value="${lead.referralName || ''}" maxlength="50">
-                  <label>Referral Comment:</label><textarea name="referralComment" maxlength="300" rows="3">${lead.referralComment || ''}</textarea>
-              `;
-              actionModal.querySelector('#edit-has-website').addEventListener('change', (e) => { // Target within actionModal
-                  const urlContainer = actionModal.querySelector('#edit-website-url-container');
-                  if (e.target.value === 'Yes') {
-                      urlContainer.classList.remove('hidden');
-                  } else {
-                      urlContainer.classList.add('hidden');
-                      urlContainer.querySelector('input').value = ''; // Clear URL if 'No'
-                  }
-              });
+    function executeMoveLead(category) {
+        if (!AppState.currentLeadId) { alert('No lead selected.'); return; }
+        if (window.firebaseMoveLead) {
+            window.firebaseMoveLead(AppState.currentLeadId, category);
+        }
+    }
 
-          } else if (action === 'delete') {
-              actionFieldsContainer.innerHTML = `<p style="text-align: center; font-weight: bold;">Are you sure you want to delete this lead?</p>`;
-              actionSubmitBtn.classList.add('hidden'); // Hide the generic save button
-              deleteConfirmationButtons.classList.remove('hidden'); // Show specific Yes/No buttons
-          }
+    // ============================================================
+    // EDIT / DELETE LEAD (UI side)
+    // ============================================================
+    function editLead() {
+        var editableFields = ['leadNameDisplay','leadCompanyDisplay','leadEmailDisplay','leadPhoneDisplay','leadNotesDisplay'];
+        editableFields.forEach(function(fid) {
+            var el = document.getElementById(fid);
+            if (el) { el.contentEditable = 'true'; el.style.border = '1px solid #4F46E5'; el.style.padding = '4px'; el.style.borderRadius = '4px'; }
+        });
+        var btn = document.getElementById('editLeadBtn');
+        btn.textContent = '💾 Save Changes';
+        btn.removeEventListener('click', editLead);
+        btn.addEventListener('click', saveLeadEdits);
+    }
+    function saveLeadEdits() {
+        if (!AppState.currentLeadId) return;
+        var updated = {
+            name: document.getElementById('leadNameDisplay').textContent,
+            company: document.getElementById('leadCompanyDisplay').textContent,
+            email: document.getElementById('leadEmailDisplay').textContent,
+            phone: document.getElementById('leadPhoneDisplay').textContent,
+            notes: document.getElementById('leadNotesDisplay').textContent,
+            comments: document.getElementById('commentBox').innerHTML
+        };
+        if (window.firebaseSaveLeadEdits) window.firebaseSaveLeadEdits(AppState.currentLeadId, updated);
+        ['leadNameDisplay','leadCompanyDisplay','leadEmailDisplay','leadPhoneDisplay','leadNotesDisplay'].forEach(function(fid) {
+            var el = document.getElementById(fid);
+            if (el) { el.contentEditable = 'false'; el.style.border = ''; el.style.padding = ''; }
+        });
+        var btn = document.getElementById('editLeadBtn');
+        btn.textContent = '✏️ Edit';
+        btn.removeEventListener('click', saveLeadEdits);
+        btn.addEventListener('click', editLead);
+    }
+    function deleteLead() {
+        if (!AppState.currentLeadId) return;
+        if (confirm('Are you sure you want to delete this lead?')) {
+            if (window.firebaseDeleteLead) window.firebaseDeleteLead(AppState.currentLeadId);
+            closeAllModals();
+        }
+    }
 
-          actionModal.classList.add("visible");
-      }
-      
-      // Task Actions Handler
-      window.handleTaskAction = function(id, action) {
-          const task = allTasks.find(t => t.id === id);
-          taskActionItemId.value = id;
-          taskActionItemAction.value = action;
-          taskActionModalTitle.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)} Task`;
-          taskActionFieldsContainer.innerHTML = '';
+    // ============================================================
+    // TASK FUNCTIONS
+    // ============================================================
+    function openTask(taskData) {
+        AppState.currentTaskId = taskData.id;
+        AppState.isEditingTask = true;
+        document.getElementById('taskType').value = taskData.type || 'call client';
+        document.getElementById('taskDescription').value = taskData.description || '';
+        document.getElementById('taskDueDate').value = taskData.dueDate || '';
+        document.getElementById('otherTask').value = taskData.otherTask || '';
+        document.getElementById('otherTaskContainer').style.display = taskData.type === 'other' ? 'block' : 'none';
+        document.getElementById('taskDetail').style.display = 'block';
+        document.getElementById('taskDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function saveTask() { if (window.firebaseSaveTask) window.firebaseSaveTask(); }
+    function completeTask() { if (window.firebaseCompleteTask) window.firebaseCompleteTask(); }
+    function deleteTask() { if (window.firebaseDeleteTask) window.firebaseDeleteTask(); }
 
-          // Reset visibility for task action modal elements
-          taskActionCommentLabel.classList.add('hidden');
-          taskActionComment.classList.add('hidden');
-          taskActionComment.value = ''; // Clear comment field
-          taskActionSubmitBtn.classList.remove('hidden');
-          taskDeleteConfirmationButtons.classList.add('hidden');
+    // ============================================================
+    // ROI CALCULATOR
+    // ============================================================
+    function calculateROI() {
+        var ml = parseInt(document.getElementById('monthlyLeads').value)||0;
+        var cr = parseInt(document.getElementById('conversionRate').value)||0;
+        var av = parseInt(document.getElementById('averageSale').value)||0;
+        var ei = parseInt(document.getElementById('expectedIncrease').value)||0;
+        var sc = parseInt(document.getElementById('serviceCost').value)||0;
+        var curRev = ml*(cr/100)*av;
+        var projRev = ml*(1+ei/100)*(cr/100)*av;
+        var inc = projRev-curRev;
+        var profit = inc-sc;
+        var roi = sc>0?(profit/sc)*100:0;
+        document.getElementById('currentRevenue').textContent='$'+curRev.toLocaleString();
+        document.getElementById('projectedRevenue').textContent='$'+projRev.toLocaleString();
+        document.getElementById('revenueIncrease').textContent='$'+inc.toLocaleString();
+        document.getElementById('monthlyProfit').textContent='$'+profit.toLocaleString();
+        document.getElementById('roiPercentage').textContent=roi.toFixed(1)+'% ROI';
+        document.getElementById('roiResults').style.display='block';
+    }
 
-          if (action === 'edit') {
-              taskActionFieldsContainer.innerHTML = `
-                  <label>Task Type:</label>
-                  <select name="type" required>
-                      ${Array.from(document.querySelector('#task-form select[name="type"]').options).map(opt => `<option value="${opt.value}" ${opt.value === task.type ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
-                  </select>
-                  <label>Date:</label>
-                  <input name="date" type="date" value="${task.date}" required>
-                  <label>Time:</label>
-                  <select name="time" required>
-                      ${Array.from(document.querySelector('#task-form select[name="time"]').options).map(opt => `<option value="${opt.value}" ${opt.value === task.time ? 'selected' : ''}>${opt.textContent}</option>`).join('')}
-                  </select>
-                  <label>Comment:</label>
-                  <textarea name="comment" maxlength="1500, rows="4">${task.comment || ''}</textarea>
-              `;
-          } else if (action === 'delete') {
-              taskActionFieldsContainer.innerHTML = `<p style="text-align: center; font-weight: bold;">Are you sure you want to delete this task?</p>`;
-              taskActionSubmitBtn.classList.add('hidden'); // Hide the generic save button
-              taskDeleteConfirmationButtons.classList.remove('hidden'); // Show specific Yes/No buttons
-              taskConfirmDeleteYes.textContent = "Yes, Delete";
-               taskConfirmDeleteNo.textContent = "No, Cancel";
-          } else if (action === 'complete') {
-               taskActionFieldsContainer.innerHTML = `<p style="text-align: center; font-weight: bold;">Are you sure you want to mark this task as complete?</p>`;
-               taskActionSubmitBtn.classList.add('hidden'); // Hide the generic save button
-               taskDeleteConfirmationButtons.classList.remove('hidden'); // Use Yes/No for completion too
-               taskConfirmDeleteYes.textContent = "Yes, Complete";
-               taskConfirmDeleteNo.textContent = "No, Keep Open";
-          }
-          taskActionModal.classList.add("visible");
-      };
+    // ============================================================
+    // CELEBRATION
+    // ============================================================
+    var confettiInterval, emojiInterval;
+    function triggerCelebration(count) {
+        var cel = document.getElementById('celebration');
+        cel.style.display='flex';
+        // Play bell sound
+        var bell = document.getElementById('bellSound');
+        if (bell) {
+            bell.currentTime = 0;
+            bell.play().catch(function(e){ console.log('Audio autoplay blocked, will play on next user interaction:', e); });
+        }
+        var emojis = count>0?['🔔','💪','👍','💰','💯']:['👏','💰','🔥','🥂','🎯'];
+        var i=0, el=document.getElementById('celebrationEmojis');
+        emojiInterval=setInterval(function(){el.innerHTML='<span class="emoji-animated">'+emojis[i%emojis.length]+'</span>';i++;},1000);
+        var dur=7000, end=Date.now()+dur;
+        confettiInterval=setInterval(function(){
+            if(Date.now()>end){clearInterval(confettiInterval);return;}
+            var pc=50*((end-Date.now())/dur);
+            confetti({startVelocity:30,spread:360,ticks:60,zIndex:9999,particleCount:pc,origin:{x:Math.random()*0.2+0.1,y:Math.random()-0.2}});
+            confetti({startVelocity:30,spread:360,ticks:60,zIndex:9999,particleCount:pc,origin:{x:Math.random()*0.2+0.7,y:Math.random()-0.2}});
+        },250);
+        setTimeout(function(){
+            cel.style.display='none';
+            clearInterval(emojiInterval);
+            clearInterval(confettiInterval);
+            var bell = document.getElementById('bellSound');
+            if (bell) { bell.pause(); bell.currentTime = 0; }
+        },8000);
+    }
 
-      // Action Modal Submission (for leads)
-      actionForm.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const id = actionItemId.value;
-          const type = actionItemType.value;
-          const action = actionItemAction.value;
-          // Comment is only relevant for moves/edits where it's explicitly shown
-          
-          if (type === 'lead') {
-              const leadRef = doc(db, "leads", id);
-              if (action === 'delete') {
-                  // This branch should not be reached by form submit for delete, handled by Yes/No buttons
-              } else if (action === 'move') {
-                  const newStatus = actionForm.querySelector('[name="newStatus"]').value;
-                  const updatedData = { status: newStatus };
-                  const referralNameInput = actionForm.querySelector('#referralName');
-                  const referralCommentInput = actionForm.querySelector('#referralComment');
-                  
-                  if (newStatus === 'Referral' && referralNameInput && referralCommentInput) {
-                      updatedData.referralName = referralNameInput.value;
-                      updatedData.referralComment = referralCommentInput.value;
-                  } else {
-                      // Ensure referral fields are removed if status is not 'Referral'
-                      updatedData.referralName = '';
-                      updatedData.referralComment = '';
-                  }
-                  await updateDoc(leadRef, updatedData);
-              } else if (action === 'edit') {
-                  const formData = new FormData(actionForm);
-                  const updatedData = Object.fromEntries(formData);
-                  if (updatedData.hasWebsite === 'No') {
-                      delete updatedData.websiteUrl;
-                  }
-                  await updateDoc(leadRef, updatedData);
-              }
-          }
+    // ============================================================
+    // DISPLAY HELPERS (called by Firebase module)
+    // ============================================================
+    window.displayLeads = function(leads) {
+        AppState.allLeads = leads;
+        var list = document.getElementById('leadsList');
+        if (!list) return;
+        var filter = document.getElementById('leadFilter').value;
+        var filtered = filter === 'all' ? leads : leads.filter(function(l) { return l.status === filter; });
+        if (!filtered.length) {
+            list.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No leads found. ' + (filter!=='all'?'Try selecting "All Leads" or submit a form.':'Submit a form to create your first lead!') + '</div>';
+            return;
+        }
+        list.innerHTML = '';
+        filtered.forEach(function(lead) {
+            var item = document.createElement('div');
+            item.className = 'lead-item';
+            var statusLabel = STATUS_LABELS[lead.status] || lead.status || 'All Leads';
+            var statusClass = 'status-' + (lead.status || 'all');
+            item.innerHTML = '<div style="display:flex;align-items:center;flex-wrap:wrap;">' +
+                '<span style="font-weight:bold;">' + (lead.name||'Unknown') + '</span>' +
+                '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+                '</div>' +
+                '<div style="font-size:13px;color:#6B7280;margin-top:3px;">' + (lead.company||'No company') + ' &bull; ' + (lead.industry||'No industry') + '</div>';
+            item.addEventListener('click', function() {
+                AppState.currentLeadId = lead.id;
+                openLead(lead);
+            });
+            list.appendChild(item);
+        });
+    };
 
-          actionModal.classList.remove("visible");
-      });
+    window.displayTasks = function(tasks) {
+        var list = document.querySelector('.task-list');
+        if (!list) return;
+        var filter = document.getElementById('taskFilter').value;
+        var filtered = filter === 'all' ? tasks : tasks.filter(function(t) { return t.status === filter; });
+        if (!filtered.length) {
+            list.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No tasks found.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        filtered.forEach(function(task) {
+            var item = document.createElement('div');
+            item.className = 'task-item';
+            var typeName = task.type === 'other' ? (task.otherTask||'Other') : task.type;
+            item.innerHTML = '<div style="font-weight:bold;">' + (typeName||'Task') + '</div>' +
+                '<div style="font-size:13px;color:#6B7280;">' + (task.description||'') + '</div>' +
+                '<div style="font-size:11px;color:#9CA3AF;">Due: ' + (task.dueDate||'Not set') + ' | ' + (task.status==='completed'?'✅ Completed':'⏳ Pending') + '</div>';
+            item.addEventListener('click', function() { openTask(task); });
+            list.appendChild(item);
+        });
+    };
+</script>
 
-      // Handle "Yes, Delete" for lead deletion
-      confirmDeleteYes.addEventListener('click', async () => {
-          const id = actionItemId.value;
-          const leadRef = doc(db, "leads", id);
-          await deleteDoc(leadRef);
-          actionModal.classList.remove("visible");
-      });
+<!-- ============================================================
+     FIREBASE MODULE - All DB operations here
+     ============================================================ -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+        getFirestore, collection, addDoc, getDocs, doc,
+        deleteDoc, updateDoc, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-      // Handle "No, Cancel" for lead deletion
-      confirmDeleteNo.addEventListener('click', () => {
-          actionModal.classList.remove("visible");
-      });
+    const firebaseConfig = {
+        apiKey: "AIzaSyD6VqxUGb5Q2kAVDHQjYkFsp9GHNymBMfg",
+        authDomain: "crmleads-3f1a7.firebaseapp.com",
+        projectId: "crmleads-3f1a7",
+        storageBucket: "crmleads-3f1a7.firebasestorage.app",
+        messagingSenderId: "317614128849",
+        appId: "1:317614128849:web:86be5c842c0f0e84768ff0"
+    };
 
-      // Task Action Modal Submission (for edit)
-      taskActionForm.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const id = taskActionItemId.value;
-          const action = taskActionItemAction.value;
-          
-          if (action === 'edit') {
-              const formData = new FormData(taskActionForm);
-              const updatedData = {
-                  type: formData.get('type') || '',
-                  date: formData.get('date') || '',
-                  time: formData.get('time') || '',
-                  comment: formData.get('comment') || ''
-              };
-              const taskRef = doc(db, "tasks", id);
-              await updateDoc(taskRef, updatedData);
-          }
-          taskActionModal.classList.remove("visible");
-      });
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-      // Handle "Yes" for task deletion/completion
-      taskConfirmDeleteYes.addEventListener('click', async () => {
-          const id = taskActionItemId.value;
-          const taskAction = taskActionItemAction.value;
-          const taskRef = doc(db, "tasks", id);
-          
-          if (taskAction === 'delete' || taskAction === 'complete') {
-              await deleteDoc(taskRef);
-          }
-          taskActionModal.classList.remove("visible");
-      });
+    // -------------------------------------------------------
+    // SERVICE → STATUS MAP (mirrors the one in global JS)
+    // -------------------------------------------------------
+    const SERVICE_TO_STATUS = {
+        'free_demo': 'demo',
+        'website': 'website',
+        'reputation': 'new',
+        'ad_campaign': 'new',
+        'video_social': 'new',
+        'seo': 'seo',
+        'calendar': 'new',
+        'form': 'new',
+        'lead_form': 'new',
+        '': 'new'
+    };
 
-      // Handle "No" for task deletion/completion
-      taskConfirmDeleteNo.addEventListener('click', () => {
-          taskActionModal.classList.remove("visible");
-      });
+    // -------------------------------------------------------
+    // GOOGLE SHEET SYNC
+    // Sends each new lead to the same sheet the "Open Google Sheet"
+    // button points to, matching its actual columns: Name,
+    // EmailAddress, PhoneNumber, CompanyName, typeofbusiness, State.
+    // -------------------------------------------------------
+    const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzokZGWuFYBcwHAGEDjt7u80C2kuIXcbPsOwxYn_x5STSudMJY1aJtOkuIXMKGHpywI/exec';
 
-      window.filterLeads = function(filter) {
-          currentFilter = filter;
-          document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-          document.querySelector(`.tab-button[onclick="filterLeads('${filter}')"]`).classList.add('active');
-          renderLeads(filter);
-      };
-    </script>
+    async function sendLeadToGoogleSheet(data) {
+        try {
+            await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+                mode: 'no-cors' // Apps Script web apps don't return normal CORS headers
+            });
+        } catch (err) {
+            // Firebase already has the lead even if this fails - don't
+            // block the form submission over a sheet-sync hiccup.
+            console.error('Google Sheet sync failed:', err);
+        }
+    }
+
+    // -------------------------------------------------------
+    // FORM SUBMIT - SINGLE LISTENER (no duplicates!)
+    // -------------------------------------------------------
+    document.getElementById('leadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitLeadBtn');
+        submitBtn.textContent = 'Submitting...';
+        submitBtn.disabled = true;
+
+        try {
+            const formData = new FormData(this);
+            const data = {};
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+
+            // AUTO-ASSIGN STATUS BASED ON SERVICE SELECTED
+            const service = data.serviceinterestedin || '';
+            data.status = SERVICE_TO_STATUS[service] || 'new';
+            data.createdAt = new Date();
+
+            console.log('Saving lead with status:', data.status, 'service:', service);
+
+            await addDoc(collection(db, "leads"), data);
+
+            // Also send this lead to the Google Sheet, matching its real
+            // columns (Name/EmailAddress/PhoneNumber/CompanyName/
+            // typeofbusiness/State) - runs alongside the Firebase save,
+            // not instead of it.
+            sendLeadToGoogleSheet(data);
+
+            // Show success modal with category info
+            const statusLabels = {
+                'demo': 'Free Demo Scheduled', 'website': 'Website', 'new': 'New Leads',
+                'seo': 'SEO', 'hot': 'Hot Leads'
+            };
+            document.getElementById('submissionCategory').textContent =
+                '📁 Added to: ' + (statusLabels[data.status] || data.status);
+            document.getElementById('submissionModal').style.display = 'flex';
+            document.body.classList.add('modal-open');
+
+            this.reset();
+            firebaseLoadLeads();
+        } catch (err) {
+            alert('Error saving lead: ' + err.message);
+            console.error(err);
+        } finally {
+            submitBtn.textContent = 'Submit Application';
+            submitBtn.disabled = false;
+        }
+    });
+
+    // -------------------------------------------------------
+    // LOAD LEADS
+    // -------------------------------------------------------
+    async function firebaseLoadLeads() {
+        const list = document.getElementById('leadsList');
+        if (list) list.innerHTML = '<div style="padding:20px;text-align:center;">Loading leads...</div>';
+        try {
+            const snap = await getDocs(collection(db, "leads"));
+            const leads = [];
+            snap.forEach(docSnap => {
+                leads.push({ id: docSnap.id, ...docSnap.data(), status: docSnap.data().status || 'new' });
+            });
+            if (window.displayLeads) window.displayLeads(leads);
+            console.log('Loaded', leads.length, 'leads');
+        } catch (err) {
+            console.error('Error loading leads:', err);
+            if (list) list.innerHTML = '<div style="padding:20px;color:red;">Error: ' + err.message + '</div>';
+        }
+    }
+    window.firebaseLoadLeads = firebaseLoadLeads;
+
+    // -------------------------------------------------------
+    // MOVE LEAD - the core fix
+    // -------------------------------------------------------
+    async function firebaseMoveLead(leadId, category) {
+        if (!leadId) { alert('No lead selected to move.'); return; }
+        try {
+            await updateDoc(doc(db, "leads", leadId), {
+                status: category,
+                updatedAt: new Date()
+            });
+            const STATUS_LABELS = {
+                'new':'New Leads','hot':'Hot Leads','interested':'Interested','demo':'Free Demo Scheduled',
+                'client':'Client','cancelled':'Cancelled','referral':'Referral Leads',
+                'website_analysis':'Website Analysis','website_demo':'Website Demo',
+                'call_backs':'Call Backs','send_email':'Send Email','free_demo':'Free Demo',
+                'website':'Website','seo':'SEO'
+            };
+            alert('✅ Lead moved to: ' + (STATUS_LABELS[category] || category));
+            // Close move modal
+            document.getElementById('moveModal').style.display = 'none';
+            document.getElementById('leadModal').style.display = 'none';
+            document.getElementById('overlay').classList.remove('active');
+            document.body.classList.remove('modal-open');
+            // Reload leads
+            await firebaseLoadLeads();
+        } catch (err) {
+            alert('Error moving lead: ' + err.message);
+            console.error(err);
+        }
+    }
+    window.firebaseMoveLead = firebaseMoveLead;
+
+    // Expose executeMoveLead globally (called from onclick in move modal buttons)
+    window.executeMoveLead = function(category) {
+        const leadId = window.AppState ? window.AppState.currentLeadId : null;
+        if (!leadId) { alert('No lead selected.'); return; }
+        firebaseMoveLead(leadId, category);
+    };
+
+    // -------------------------------------------------------
+    // SAVE LEAD EDITS
+    // -------------------------------------------------------
+    async function firebaseSaveLeadEdits(leadId, updated) {
+        try {
+            await updateDoc(doc(db, "leads", leadId), { ...updated, updatedAt: new Date() });
+            alert('✅ Lead saved!');
+            await firebaseLoadLeads();
+        } catch (err) {
+            alert('Error saving: ' + err.message);
+        }
+    }
+    window.firebaseSaveLeadEdits = firebaseSaveLeadEdits;
+
+    // -------------------------------------------------------
+    // DELETE LEAD
+    // -------------------------------------------------------
+    async function firebaseDeleteLead(leadId) {
+        try {
+            await deleteDoc(doc(db, "leads", leadId));
+            alert('Lead deleted.');
+            await firebaseLoadLeads();
+        } catch (err) {
+            alert('Error deleting: ' + err.message);
+        }
+    }
+    window.firebaseDeleteLead = firebaseDeleteLead;
+
+    // -------------------------------------------------------
+    // LOAD TASKS
+    // -------------------------------------------------------
+    async function firebaseLoadTasks() {
+        const list = document.querySelector('.task-list');
+        if (list) list.innerHTML = '<div style="padding:20px;text-align:center;">Loading tasks...</div>';
+        try {
+            const snap = await getDocs(collection(db, "tasks"));
+            const tasks = [];
+            snap.forEach(docSnap => {
+                tasks.push({ id: docSnap.id, ...docSnap.data(), status: docSnap.data().status || 'pending' });
+            });
+            if (window.displayTasks) window.displayTasks(tasks);
+        } catch (err) {
+            console.error(err);
+            if (list) list.innerHTML = '<div style="padding:20px;color:red;">Error: ' + err.message + '</div>';
+        }
+    }
+    window.firebaseLoadTasks = firebaseLoadTasks;
+
+    // -------------------------------------------------------
+    // SAVE TASK
+    // -------------------------------------------------------
+    window.firebaseSaveTask = async function() {
+        const state = window.AppState;
+        const taskData = {
+            type: document.getElementById('taskType').value,
+            description: document.getElementById('taskDescription').value,
+            dueDate: document.getElementById('taskDueDate').value,
+            otherTask: document.getElementById('otherTask').value,
+            updatedAt: new Date()
+        };
+        try {
+            if (state.isEditingTask && state.currentTaskId) {
+                await updateDoc(doc(db, "tasks", state.currentTaskId), taskData);
+                alert('✅ Task updated!');
+            } else {
+                taskData.createdAt = new Date();
+                taskData.status = 'pending';
+                await addDoc(collection(db, "tasks"), taskData);
+                alert('✅ Task created!');
+            }
+            document.getElementById('taskDetail').style.display = 'none';
+            await firebaseLoadTasks();
+        } catch (err) {
+            alert('Error saving task: ' + err.message);
+        }
+    };
+
+    // -------------------------------------------------------
+    // COMPLETE TASK
+    // -------------------------------------------------------
+    window.firebaseCompleteTask = async function() {
+        const id = window.AppState ? window.AppState.currentTaskId : null;
+        if (!id) return;
+        try {
+            await updateDoc(doc(db, "tasks", id), { status: 'completed', completedAt: new Date() });
+            alert('✅ Task completed!');
+            document.getElementById('taskDetail').style.display = 'none';
+            await firebaseLoadTasks();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    };
+
+    // -------------------------------------------------------
+    // DELETE TASK
+    // -------------------------------------------------------
+    window.firebaseDeleteTask = async function() {
+        const id = window.AppState ? window.AppState.currentTaskId : null;
+        if (!id || !confirm('Delete this task?')) return;
+        try {
+            await deleteDoc(doc(db, "tasks", id));
+            alert('Task deleted.');
+            document.getElementById('taskDetail').style.display = 'none';
+            await firebaseLoadTasks();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    };
+
+    // Auto-load when back office becomes visible
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(m => {
+            if (m.target.id === 'backOffice' && m.target.style.display === 'block') {
+                firebaseLoadLeads();
+                firebaseLoadTasks();
+            }
+        });
+    });
+    observer.observe(document.getElementById('backOffice'), { attributes: true, attributeFilter: ['style'] });
+</script>
 </body>
 </html>
